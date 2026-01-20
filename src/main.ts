@@ -3,7 +3,6 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const port = 3000;
   const logger = new Logger('BootStrap');
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api/v1');
@@ -13,7 +12,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-  await app.listen(process.env.PORT?? port);
-  logger.log(`App running in port ${ port }`);
+  await app.listen(process.env.PORT ?? 3000);
+  logger.log(`App running on: ${ await app.getUrl() }`);
 }
 void bootstrap();

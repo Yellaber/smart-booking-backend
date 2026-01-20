@@ -22,8 +22,7 @@ export class CompaniesService {
   async create(createCompanyDto: CreateCompanyDto) {
     try {
       const company = this.companyRepository.create(createCompanyDto);
-      await this.companyRepository.save(company);
-      return company;
+      return this.companyRepository.save(company);
     } catch(error) {
       this.dbException.handle(error);
     }
@@ -61,12 +60,16 @@ export class CompaniesService {
   }
 
   async update(id: string, updateCompanyDto: UpdateCompanyDto) {
-    const company = await this.findOne(id);
-    const updatedCompany = Object.assign(company, updateCompanyDto);
+    const company = await this.companyRepository.preload({
+      id,
+      ...updateCompanyDto,
+    });
+
+    if(!company)
+      throw new NotFoundException(`Company with id '${ id }' not found`);
 
     try {
-      await this.companyRepository.save(updatedCompany);
-      return updatedCompany;
+      return this.companyRepository.save(company);;
     } catch(error) {
       this.dbException.handle(error);
     }
