@@ -24,41 +24,32 @@ export class Company {
     status: string;
 
     @Column('timestamp')
-    createAt: Date;
+    createdAt: Date;
 
     @Column('timestamp')
-    updateAt: Date;
+    updatedAt: Date;
 
     @BeforeInsert()
     @BeforeUpdate()
-    checkName() {
-        this.name = this.name.toLowerCase().trim();
-    }
-
-    @BeforeInsert()
-    @BeforeUpdate()
-    checkLogo() {
-        if(!this.logo) this.logo = '';
-    }
-
-    @BeforeInsert()
-    @BeforeUpdate()
-    checkSlug() {
-        this.slug = this.name.normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/-+/g, '-')
-            .replace(/^-+|-+$/g, '');
+    prepareDataBeforeSave() {
+        if(this.name) {
+            this.name = this.name.toLowerCase().trim();
+            this.slug = this.name.normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
     }
 
     @BeforeInsert()
     checkCreateAt() {
-        this.createAt = new Date();
+        this.createdAt = new Date();
     }
 
     @BeforeInsert()
     @BeforeUpdate()
     checkUpdateAt() {
-        this.updateAt = new Date();
+        this.updatedAt = new Date();
     }
 }
