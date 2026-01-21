@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CompaniesModule } from './companies/companies.module';
 import { CommonModule } from './common/common.module';
+import { CompaniesModule } from './companies/companies.module';
+import { BranchesModule } from './branches/branches.module';
 
 @Module({
   imports: [
@@ -17,8 +18,9 @@ import { CommonModule } from './common/common.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    CommonModule,
     CompaniesModule,
-    CommonModule
+    BranchesModule
   ]
 })
 export class AppModule {}

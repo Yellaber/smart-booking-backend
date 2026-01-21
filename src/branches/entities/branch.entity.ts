@@ -1,31 +1,32 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Branch } from 'src/branches/entities/branch.entity';
+import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Company } from 'src/companies/entities/company.entity';
 
-@Entity({ name: 'companies' })
-export class Company {
+@Entity({ name: 'branches'})
+@Unique('UQ_company_name', ['company', 'name'])
+export class Branch {
     @PrimaryGeneratedColumn('uuid')
     id: string;
-    
-    @Column('text', { unique: true })
-    idNumber: string;
 
-    @Column('text', { unique: true })
+    @Column('text')
     name: string;
 
-    @Column('text', { unique: true })
+    @Column('text')
     slug: string;
 
-    @Column('text', { nullable: true })
-    webSite: string;
+    @Column('text')
+    address: string;
+
+    @Column('text')
+    city: string;
 
     @Column('text', { nullable: true })
-    logo: string;
+    email: string;
 
     @Column('boolean', { default: true })
     isActive: boolean;
 
-    @OneToMany(() => Branch, (branch) => branch.company)
-    branches: Branch[];
+    @ManyToOne(() => Company, (company) => company.branches, { nullable: false })
+    company: Company;
 
     @Column('timestamp')
     createdAt: Date;
@@ -44,13 +45,22 @@ export class Company {
                 .replace(/-+/g, '-')
                 .replace(/^-+|-+$/g, '');
         }
+
+        if(this.address)
+            this.address = this.address.toLowerCase().trim();
+
+        if(this.city)
+            this.city = this.city.toLowerCase().trim();
+
+        if(this.email)
+            this.email = this.email.toLowerCase().trim();
     }
 
     @BeforeInsert()
     checkCreateAt() {
         this.createdAt = new Date();
     }
-
+    
     @BeforeInsert()
     @BeforeUpdate()
     checkUpdateAt() {

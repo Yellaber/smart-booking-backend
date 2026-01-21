@@ -14,6 +14,6 @@ export class DbException {
             throw new BadRequestException(error.detail);
         
         this.logger.error(error);
-        throw new InternalServerErrorException('Unspected error, check server logs')
+        throw new InternalServerErrorException('Unexpected error, check server logs')
     }
 }
