@@ -24,7 +24,7 @@ export class Company {
     @Column('boolean', { default: true })
     isActive: boolean;
 
-    @OneToMany(() => Branch, (branch) => branch.company, { eager: true })
+    @OneToMany(() => Branch, (branch) => branch.company)
     branches: Branch[];
 
     @Column('timestamp')

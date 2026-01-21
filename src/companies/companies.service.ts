@@ -34,7 +34,8 @@ export class CompaniesService {
     const { limit = 10, offset = 0 } = paginationDto;
     const [ companies, total ] = await this.companyRepository.findAndCount({
       take: limit,
-      skip: offset
+      skip: offset,
+      relations: { branches: true }
     });
 
     const companiesPlan = companies.map(this.planCompany);
@@ -43,7 +44,10 @@ export class CompaniesService {
 
   async findOne(term: string) {
     const query = isUUID(term)? { id: term }: { slug: term.toLowerCase() };    
-    const company = await this.companyRepository.findOneBy(query);
+    const company = await this.companyRepository.findOne({
+      where: query,
+      relations: { branches: true }
+    });
     
     if(!company)
       throw new NotFoundException(`Company with '${ term }' not found`);

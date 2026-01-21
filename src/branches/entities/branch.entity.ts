@@ -2,7 +2,7 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, PrimaryGenerated
 import { Company } from 'src/companies/entities/company.entity';
 
 @Entity({ name: 'branches'})
-@Unique('UQ_company_address', ['company', 'name'])
+@Unique('UQ_company_name', ['company', 'name'])
 export class Branch {
     @PrimaryGeneratedColumn('uuid')
     id: string;
