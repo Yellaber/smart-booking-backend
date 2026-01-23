@@ -52,8 +52,8 @@ export class ProfilesService {
   }
 
   async findOnePlan(term: string) {
-    const company = await this.findOne(term);
-    return this.planProfile(company);
+    const profile = await this.findOne(term);
+    return this.planProfile(profile);
   }
 
   async update(id: string, updateProfileDto: UpdateProfileDto) {

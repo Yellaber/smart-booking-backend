@@ -1,11 +1,11 @@
-import { IsAlpha, IsEmail, IsEnum, IsNumberString, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNumberString, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { IdType } from 'src/common/enums/id-type.enum';
 
 export class CreateProfileDto {
     @IsEnum(IdType)
     @MinLength(1)
     @MaxLength(3)
-    idType: string;
+    idType: IdType;
     
     @IsNumberString()
     @MinLength(1)
@@ -34,7 +34,7 @@ export class CreateProfileDto {
     @IsOptional()
     phone?: string;
     
-    @IsAlpha()
+    @IsString()
     @MinLength(1)
     @MaxLength(20)
     @IsOptional()

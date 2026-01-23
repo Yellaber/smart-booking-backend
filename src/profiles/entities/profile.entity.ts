@@ -12,7 +12,7 @@ export class Profile {
     @Column('text', { unique: true })
     idNumber: string;
 
-    @Column('text', { unique: true })
+    @Column('text')
     fullName: string;
 
     @Column('text', { nullable: true })
