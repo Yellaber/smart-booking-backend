@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,18 +14,21 @@ import { LoginResponseDto, LoginUserDto, RegisterResponseDto } from './dto';
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly configService: ConfigService,
+    @Inject(forwardRef(() => CompaniesService))
+    private readonly companiesService: CompaniesService,
+    private readonly jwtService: JwtService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly companiesService: CompaniesService,
-    private readonly jwtService: JwtService
   ) {}
 
   async register(companySlug: string, registerUserDto: RegisterUserDto) {
     const company = await this.companiesService.findOne(companySlug);
     const { password, ...restRegisterUserDto } = registerUserDto;
+    const passwordBcrypt = await bcrypt.hash(password, this.configService.get('BCRYPT_SALT') || 10);
     const user = this.userRepository.create({
       ...restRegisterUserDto,
-      password: bcrypt.hashSync(password, 10),
+      password: passwordBcrypt,
       company
     });
     await this.userRepository.save(user);
@@ -37,8 +41,8 @@ export class AuthService {
     const { userName, password } = loginUserDto;
     const user = await this.getUserByUserNameAndCompany(userName, company);
 
-    if(!bcrypt.compareSync(password, user.password))
-      throw new UnauthorizedException('Credentials are not valid (password)');
+    if(!await bcrypt.compare(password, user.password))
+      throw new UnauthorizedException('Credentials are not valid');
 
     const jwtPayload = { userId: user.id, companyId: company.id };
     return this.getLoginResponseDto(user, jwtPayload);
@@ -61,7 +65,7 @@ export class AuthService {
     });
 
     if(!user)
-      throw new UnauthorizedException('Credentials are not valid (userName)');
+      throw new UnauthorizedException('Credentials are not valid');
     return user;
   }
 

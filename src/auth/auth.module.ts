@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
@@ -20,11 +20,11 @@ import { User } from 'src/users/entities/user.entity';
       imports: [ ConfigModule ],
       inject: [ ConfigService ],
         useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '2h' }
+        secret: configService.get( 'JWT_SECRET' ),
+        signOptions: { expiresIn: configService.get( 'JWT_EXPIRES_IN' ) || '2h' }
       })
     }),
-    CompaniesModule
+    forwardRef(() => CompaniesModule)
   ],
   exports: [ JwtStrategy, PassportModule, JwtModule ]
 })
