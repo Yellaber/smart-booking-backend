@@ -7,13 +7,15 @@ export class DbException {
         this.logger = new Logger(context);
     }
     
-    handle(error: any) {
-        const errorCodes = ['23502', '23505'];
-
-        if(errorCodes.includes(error.code))
-            throw new BadRequestException(error.detail);
-        
-        this.logger.error(error);
-        throw new InternalServerErrorException('Unexpected error, check server logs')
+    handle(error: any): never {
+        switch (error.code) {
+            case '23505':
+                throw new BadRequestException('Duplicate value');
+            case '23502':
+                throw new BadRequestException('Missing required field');
+            default:
+                this.logger.error(error);
+                throw new InternalServerErrorException('Unexpected error, check server logs');
+        }
     }
 }

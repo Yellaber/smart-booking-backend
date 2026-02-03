@@ -1,9 +1,10 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Branch } from 'src/branches/entities/branch.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Entity({ name: 'companies' })
 export class Company {
-    @PrimaryGeneratedColumn('uuid')
+    @PrimaryGeneratedColumn( 'uuid' )
     id: string;
     
     @Column('text', { unique: true })
@@ -27,11 +28,8 @@ export class Company {
     @OneToMany(() => Branch, (branch) => branch.company)
     branches: Branch[];
 
-    @Column('timestamp')
-    createdAt: Date;
-
-    @Column('timestamp')
-    updatedAt: Date;
+    @OneToMany(() => User, (user) => user.company)
+    users: User[];
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -44,16 +42,5 @@ export class Company {
                 .replace(/-+/g, '-')
                 .replace(/^-+|-+$/g, '');
         }
-    }
-
-    @BeforeInsert()
-    checkCreateAt() {
-        this.createdAt = new Date();
-    }
-
-    @BeforeInsert()
-    @BeforeUpdate()
-    checkUpdateAt() {
-        this.updatedAt = new Date();
     }
 }

@@ -1,86 +1,58 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
 import { CompaniesService } from 'src/companies/companies.service';
-import { CreateBranchDto } from './dto/create-branch.dto';
-import { UpdateBranchDto } from './dto/update-branch.dto';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { DbException } from 'src/common/helpers/db-exception.helper';
 import { Branch } from './entities/branch.entity';
+import { BranchResponseDto, CreateBranchDto, PaginationBranchResponseDto, UpdateBranchDto } from './dto';
 
 @Injectable()
 export class BranchesService {
   private readonly dbException = new DbException('BranchesService');
 
   constructor(
-    @Inject(forwardRef(() => CompaniesService))
     private readonly companiesService: CompaniesService,
     @InjectRepository(Branch)
     private readonly branchRepository: Repository<Branch>
   ) {}
 
-  async create(createBranchDto: CreateBranchDto) {
-    const { companyId, ...restBranchDto } = createBranchDto;
-    const companyFound = await this.companiesService.findOne(companyId);
-    
-    if(!companyFound)
-      throw new NotFoundException(`Company with id '${ companyId }' not found`);
+  async create(companySlug: string, createBranchDto: CreateBranchDto) {
+    const company = await this.companiesService.findOne(companySlug);
     
     try {
       const branch = this.branchRepository.create({
-        ...restBranchDto,
-        company: companyFound,
+        ...createBranchDto,
+        company
       });
       await this.branchRepository.save(branch);
-      return this.planBranch(branch);
+      return this.getBranchResponse(branch);
     } catch(error) {
-      this.dbException.handle(error);
+      return this.dbException.handle(error);
     }
   }
 
-  async findOne(id: string) {
-    const branch = await this.branchRepository.findOne({
-      where: { id },
-      relations: { company: true }
-    });
-        
-    if(!branch)
-      throw new NotFoundException(`Branch with id '${ id }' not found`);
-    return branch;
-  }
-
-  async findByCompany(companyId: string, paginationDto: PaginationDto) {
+  async findAll(companySlug: string, paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    const [ branches, total ] = await this.branchRepository.findAndCount({
-      where: { company: { id: companyId } },
+    const companyFound = await this.companiesService.findOne(companySlug);
+    const [ branches, totalPage ] = await this.branchRepository.findAndCount({
+      where: { company: { id: companyFound.id } },
       take: limit,
       skip: offset
     });
 
-    const branchesPlan = branches.map(({ createdAt, updatedAt, company, ...restBranch }) => restBranch );
-    return { total, branches: branchesPlan };
+    return this.getPaginationBranchResponse(totalPage, branches);
   }
 
-  async findOneBranch(companyId: string, branchTerm: string) {
-    const company = { id: companyId };
-    const query = isUUID(branchTerm)? { id: branchTerm, company }: { slug: branchTerm.toLowerCase(), company };
-    const branch = await this.branchRepository.findOne({
-      where: query,
-      relations: { company: true }
-    });
-
-    if(!branch)
-      throw new NotFoundException(`Branch with '${ branchTerm }' not found`);
-    return this.planBranch(branch);
+  async findOneBranchResponse(companyTerm: string, branchTerm: string) {
+    const branch = await this.findOne(companyTerm, branchTerm);
+    return this.getBranchResponse(branch);
   }
 
-  async findOnePlan(id: string) {
-    const branch = await this.findOne(id);
-    return this.planBranch(branch);
-  }
+  async update(companySlug: string, id: string, updateBranchDto: UpdateBranchDto) {
+    await this.findOne(companySlug, id);
 
-  async update(id: string, updateBranchDto: UpdateBranchDto) {
     const branch = await this.branchRepository.preload({
       id,
       ...updateBranchDto,
@@ -91,22 +63,33 @@ export class BranchesService {
 
     try {
       await this.branchRepository.save(branch);
-      return this.planBranch(branch);
+      return this.getBranchResponse(branch);
     } catch(error) {
-      this.dbException.handle(error);
+      return this.dbException.handle(error);
     }
   }
 
-  private planBranch(branch: Branch) {
-    const { company, createdAt: branchCreatedAt, updatedAt: branchUpdatedAt, ...restBranch } = branch;
+  private async findOne(companySlug: string, branchTerm: string) {
+    const companyFound = await this.companiesService.findOne(companySlug);
+    const company = { id: companyFound.id };
+    const query = isUUID(branchTerm)? { id: branchTerm, company }: { slug: branchTerm.toLowerCase(), company };
+    const branch = await this.branchRepository.findOne({
+      where: query,
+      relations: { company: true }
+    });
 
-    if(!company)
-      return restBranch;
+    if(!branch)
+      throw new NotFoundException(`Branch with '${ branchTerm }' not found`);
+    return branch;
+  }
 
-    const { branches, createdAt: companyCreatedAt, updatedAt: companyUpdatedAt, ...restCompany } = company;
-    return {
-      ...restBranch,
-      company: restCompany
-    };
+  private getBranchResponse(branch: Branch): BranchResponseDto {
+    const { company, ...restBranch } = branch;
+    return restBranch;
+  }
+
+  private getPaginationBranchResponse(totalPage: number, branches: Branch[]): PaginationBranchResponseDto {
+    const branchesResponse = branches.map(this.getBranchResponse);
+    return { totalPage, branches: branchesResponse };
   }
 }

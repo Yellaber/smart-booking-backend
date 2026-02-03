@@ -1,10 +1,10 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Company } from 'src/companies/entities/company.entity';
 
-@Entity({ name: 'branches'})
-@Unique('UQ_company_name', ['company', 'name'])
+@Entity({ name: 'branches' })
+@Unique('UQ_company_name', [ 'company', 'name' ])
 export class Branch {
-    @PrimaryGeneratedColumn('uuid')
+    @PrimaryGeneratedColumn( 'uuid' )
     id: string;
 
     @Column('text')
@@ -20,6 +20,9 @@ export class Branch {
     city: string;
 
     @Column('text', { nullable: true })
+    phone: string;
+
+    @Column('text', { nullable: true })
     email: string;
 
     @Column('boolean', { default: true })
@@ -27,12 +30,6 @@ export class Branch {
 
     @ManyToOne(() => Company, (company) => company.branches, { nullable: false })
     company: Company;
-
-    @Column('timestamp')
-    createdAt: Date;
-
-    @Column('timestamp')
-    updatedAt: Date;
 
     @BeforeInsert()
     @BeforeUpdate()
@@ -54,16 +51,5 @@ export class Branch {
 
         if(this.email)
             this.email = this.email.toLowerCase().trim();
-    }
-
-    @BeforeInsert()
-    checkCreateAt() {
-        this.createdAt = new Date();
-    }
-    
-    @BeforeInsert()
-    @BeforeUpdate()
-    checkUpdateAt() {
-        this.updatedAt = new Date();
     }
 }

@@ -1,21 +1,17 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
-import { BranchesService } from '../branches/branches.service';
-import { CreateCompanyDto } from './dto/create-company.dto';
-import { UpdateCompanyDto } from './dto/update-company.dto';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { DbException } from 'src/common/helpers/db-exception.helper';
 import { Company } from './entities/company.entity';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { CompanyResponseDto, CreateCompanyDto, PaginationCompanyResponseDto, UpdateCompanyDto } from './dto';
 
 @Injectable()
 export class CompaniesService {
   private readonly dbException = new DbException('CompaniesService');
 
   constructor(
-    @Inject(forwardRef(() => BranchesService))
-    private readonly branchesService: BranchesService,
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>
   ) {}
@@ -24,22 +20,21 @@ export class CompaniesService {
     try {
       const company = this.companyRepository.create(createCompanyDto);
       await this.companyRepository.save(company);
-      return this.planCompany(company);
+      return this.getCompanyResponseDto(company);
     } catch(error) {
-      this.dbException.handle(error);
+      return this.dbException.handle(error);
     }
   }
 
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    const [ companies, total ] = await this.companyRepository.findAndCount({
+    const [ companies, totalPages ] = await this.companyRepository.findAndCount({
       take: limit,
       skip: offset,
       relations: { branches: true }
     });
 
-    const companiesPlan = companies.map(this.planCompany);
-    return { total, companies: companiesPlan };
+    return this.getPaginationCompanyResponse(totalPages, companies);
   }
 
   async findOne(term: string) {
@@ -54,19 +49,9 @@ export class CompaniesService {
     return company;
   }
 
-  async findOnePlan(term: string) {
+  async findOneCompanyResponse(term: string) {
     const company = await this.findOne(term);
-    return this.planCompany(company);
-  }
-
-  async findAllBranches(companyTerm: string, paginationDto: PaginationDto) {
-    const { id } = await this.findOne(companyTerm);
-    return this.branchesService.findByCompany(id, paginationDto);
-  }
-
-  async findBranch(companyTerm: string, branchTerm: string) {
-    const { id: companyId } = await this.findOne(companyTerm);
-    return this.branchesService.findOneBranch(companyId, branchTerm);
+    return this.getCompanyResponseDto(company);
   }
 
   async update(id: string, updateCompanyDto: UpdateCompanyDto) {
@@ -80,28 +65,19 @@ export class CompaniesService {
 
     try {
       await this.companyRepository.save(company);
-      return this.planCompany(company);
+      return this.getCompanyResponseDto(company);
     } catch(error) {
-      this.dbException.handle(error);
+      return this.dbException.handle(error);
     }
   }
 
-  private planCompany(company: Company) {
-    const { branches, createdAt: companyCreatedAt, updatedAt: companyUpdatedAt, ...restCompany } = company;
+  private getCompanyResponseDto(company: Company): CompanyResponseDto {
+    const { branches, users, ...restCompany } = company;
+    return restCompany;
+  }
 
-    if(!branches) {
-      return { 
-        ...restCompany,
-        branches: []
-      };
-    }
-
-    return {
-      ...restCompany,
-      branches: branches.map(branch => {
-        const { company, createdAt: branchCreatedAt, updatedAt: branchUpdatedAt, ...restBranch } = branch;
-        return restBranch;
-      })
-    };
+  private getPaginationCompanyResponse(totalPages: number, companies: Company[]): PaginationCompanyResponseDto {
+    const companiesResponse = companies.map(this.getCompanyResponseDto);
+    return { totalPages, companies: companiesResponse };
   }
 }

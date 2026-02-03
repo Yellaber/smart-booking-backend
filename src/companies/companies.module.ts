@@ -1,17 +1,27 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CompaniesController } from './companies.controller';
 import { CompaniesService } from './companies.service';
 import { Company } from './entities/company.entity';
-import { BranchesModule } from 'src/branches/branches.module';
 
 @Module({
-  controllers: [CompaniesController],
-  providers: [CompaniesService],
+  controllers: [ CompaniesController ],
+  providers: [ CompaniesService ],
   imports: [
     TypeOrmModule.forFeature([ Company ]),
-    forwardRef(() => BranchesModule)
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+      JwtModule.registerAsync({
+        imports: [ ConfigModule ],
+        inject: [ ConfigService ],
+        useFactory: (configService: ConfigService) => ({
+          secret: configService.get('JWT_SECRET'),
+          signOptions: { expiresIn: '2h' }
+      })
+    }),
   ],
-  exports: [CompaniesService]
+  exports: [ CompaniesService ]
 })
 export class CompaniesModule {}
