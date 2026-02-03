@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import { CommonModule } from './common/common.module';
 import { CompaniesModule } from './companies/companies.module';
 import { BranchesModule } from './branches/branches.module';
-import { ProfilesModule } from './profiles/profiles.module';
 
 @Module({
   imports: [
@@ -19,10 +20,11 @@ import { ProfilesModule } from './profiles/profiles.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    AuthModule,
+    UsersModule,
     CommonModule,
     CompaniesModule,
-    BranchesModule,
-    ProfilesModule
+    BranchesModule
   ]
 })
 export class AppModule {}

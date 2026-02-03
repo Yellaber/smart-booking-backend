@@ -3,15 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CompaniesController } from './companies.controller';
 import { CompaniesService } from './companies.service';
 import { Company } from './entities/company.entity';
-import { BranchesModule } from 'src/branches/branches.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  controllers: [CompaniesController],
-  providers: [CompaniesService],
+  controllers: [ CompaniesController ],
+  providers: [ CompaniesService ],
   imports: [
     TypeOrmModule.forFeature([ Company ]),
-    forwardRef(() => BranchesModule)
+    forwardRef(() => AuthModule)
   ],
-  exports: [CompaniesService]
+  exports: [ CompaniesService ]
 })
 export class CompaniesModule {}
