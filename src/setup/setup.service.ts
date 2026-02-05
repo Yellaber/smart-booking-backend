@@ -1,76 +1,61 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { DbException } from 'src/common/helpers/db-exception.helper';
 import { Company } from 'src/companies/entities/company.entity';
 import { User } from 'src/users/entities/user.entity';
 import { UserRole } from 'src/common/enums';
+import { RegisterUserDto } from 'src/users/dto';
 import { CreateCompanyDto } from 'src/companies/dto';
-import { InitSetupDto, SetupResponseDto, UserSetupDto } from './dto';
+import { SetupResponseDto } from './dto/setup-response.dto';
 
 @Injectable()
 export class SetupService {
-  private readonly dbException = new DbException('SetupService');
-
   constructor(
+    private readonly dataSource: DataSource,
     private readonly configService: ConfigService,
-    @InjectRepository(Company)
-    private readonly companyRepository: Repository<Company>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>
   ) {}
 
-  async bootstraping(initSetupDto: InitSetupDto) {
-    const { company, user } = initSetupDto;
-    const { password, roles, ...restUser } = user;
-    const hasSuperUser = await this.countSuperUserByCompany(company.idNumber);
-    if(!hasSuperUser) {
+  async bootstraping(registerUserDto: RegisterUserDto) {
+    const hasCompanies = await this.countCompanies();
+    
+    if(!hasCompanies) {
+      const { password, ...restUser } = registerUserDto;
+      const company = this.getCreateCompanyDto();
       const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
       const passwordBcrypt = await bcrypt.hash(password, saltRounds);
-      const companyFound = await this.createCompany(company);
-      await this.createUser(companyFound, {
-        ...restUser,
-        password: passwordBcrypt,
-        roles: [ UserRole.SUPER_USER ]
+      
+      return this.dataSource.transaction(async manager => {
+        const companyRepository = manager.getRepository(Company);
+        const userRepository = manager.getRepository(User);
+        const companySetup = companyRepository.create(company);
+        await companyRepository.save(companySetup);
+        const userSetup = userRepository.create({
+          ...restUser,
+          password: passwordBcrypt,
+          roles: [ UserRole.SUPER_USER ],
+          company: companySetup
+        });
+        await userRepository.save(userSetup);
+        return this.getSetupResponse('Setup completed successfully', true);
       });
-      return this.getSetupResponse('Setup completed successfully', true);
     }
     return this.getSetupResponse('Setup has already been completed', false);
   }
 
-  private async countSuperUserByCompany(idNumberCompany: string) {
-    const count =  await this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.company', 'company')
-      .where('company.idNumber = :idNumberCompany', { idNumberCompany })
-      .andWhere(':role = ANY(user.roles)', { role: UserRole.SUPER_USER })
+  private getCreateCompanyDto(): CreateCompanyDto {
+    return {
+      idNumber: '11111111111',
+      name: 'System',
+      webSite: 'www.mywebsite.com'
+    }
+  }
+
+  private async countCompanies() {
+    const count = await this.dataSource.getRepository(Company)
+      .createQueryBuilder('company')
       .getCount();
-    return count === 1;
-  }
-
-  private async createCompany(createCompanyDto: CreateCompanyDto) {
-    try {
-      const company = this.companyRepository.create(createCompanyDto);
-      await this.companyRepository.save(company);
-      return company;
-    } catch(error) {
-      return this.dbException.handle(error);
-    }
-  }
-
-  private async createUser(company: Company, userSetupDto: UserSetupDto) {
-    try {
-      const user = this.userRepository.create({
-        ...userSetupDto,
-        company
-      });
-      await this.userRepository.save(user);
-      return user;
-    } catch(error) {
-      return this.dbException.handle(error);
-    }
+    return count > 0;
   }
 
   private getSetupResponse(message: string, success: boolean): SetupResponseDto {

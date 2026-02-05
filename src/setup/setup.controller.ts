@@ -1,7 +1,8 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { SetupService } from './setup.service';
 import { ApiResponse } from '@nestjs/swagger';
-import { InitSetupDto, SetupResponseDto } from './dto';
+import { RegisterUserDto } from 'src/users/dto';
+import { SetupResponseDto } from './dto/setup-response.dto';
 
 @Controller('setup')
 export class SetupController {
@@ -9,8 +10,7 @@ export class SetupController {
 
   @Post()
   @ApiResponse({ status: 201, description: 'Indicate if the setup has been completed successfully or already was.', type: SetupResponseDto })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
-  bootstraping(@Body() initSetupDto: InitSetupDto) {
-    return this.setupService.bootstraping(initSetupDto);
+  bootstraping(@Body() registerUserDto: RegisterUserDto) {
+    return this.setupService.bootstraping(registerUserDto);
   }
 }
