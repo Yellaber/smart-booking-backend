@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { CommonModule } from './common/common.module';
 import { CompaniesModule } from './companies/companies.module';
 import { BranchesModule } from './branches/branches.module';
+import { SetupModule } from './setup/setup.module';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { BranchesModule } from './branches/branches.module';
     UsersModule,
     CommonModule,
     CompaniesModule,
-    BranchesModule
+    BranchesModule,
+    SetupModule
   ]
 })
 export class AppModule {}

@@ -19,13 +19,14 @@ export class AuthService {
     private readonly companiesService: CompaniesService,
     private readonly jwtService: JwtService,
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>
   ) {}
 
   async register(companySlug: string, registerUserDto: RegisterUserDto) {
     const company = await this.companiesService.findOne(companySlug);
     const { password, ...restRegisterUserDto } = registerUserDto;
-    const passwordBcrypt = await bcrypt.hash(password, this.configService.get('BCRYPT_SALT') || 10);
+    const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
+    const passwordBcrypt = await bcrypt.hash(password, saltRounds);
     const user = this.userRepository.create({
       ...restRegisterUserDto,
       password: passwordBcrypt,

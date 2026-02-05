@@ -21,7 +21,7 @@ import { User } from 'src/users/entities/user.entity';
       inject: [ ConfigService ],
         useFactory: (configService: ConfigService) => ({
         secret: configService.get( 'JWT_SECRET' ),
-        signOptions: { expiresIn: configService.get( 'JWT_EXPIRES_IN' ) || '2h' }
+        signOptions: { expiresIn: configService.get( 'JWT_EXPIRES_IN' )?? '2h' }
       })
     }),
     forwardRef(() => CompaniesModule)
