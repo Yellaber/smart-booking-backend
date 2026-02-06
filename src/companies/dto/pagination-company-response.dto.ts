@@ -4,25 +4,25 @@ import { CompanyResponseDto } from './company-response.dto';
 export class PaginationCompanyResponseDto {
     @ApiProperty({
         example: 1,
-        description: 'Total number of pages.',
+        description: 'Total number of companies.',
         format: 'number'
     })
-    totalPages: number;
+    total: number;
     
     @ApiProperty({
         example: [
             {
                 id: '1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6',
                 idNumber: '12345678901',
-                name: 'Company name',
+                name: 'company name',
                 slug: 'company-name',
                 webSite: 'https://www.company.com',
                 logo: 'https://www.company.com/logo.png',
                 isActive: true
             },
         ],
-        description: 'List of companies in the current page.',
-        type: [ CompanyResponseDto ]
+        type: [ CompanyResponseDto ],
+        description: 'List of companies in the current page.'
     })
     companies: CompanyResponseDto[];
 }

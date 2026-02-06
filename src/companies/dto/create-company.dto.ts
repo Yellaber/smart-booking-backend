@@ -21,7 +21,7 @@ export class CreateCompanyDto {
   name: string;
 
   @ApiProperty({
-    example: 'Company website',
+    example: 'www.company.com',
     description: 'The website of the company',
     nullable: true
   })
@@ -32,7 +32,7 @@ export class CreateCompanyDto {
   webSite?: string;
   
   @ApiProperty({
-    example: 'Company logo',
+    example: 'https://www.company.com/logo.png',
     description: 'The logo of the company',
     nullable: true
   })

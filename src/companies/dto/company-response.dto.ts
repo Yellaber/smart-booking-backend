@@ -16,30 +16,28 @@ export class CompanyResponseDto {
     idNumber: string;
     
     @ApiProperty({
-        example: 'Company name',
+        example: 'company name',
         description: 'The name of the company'
     })
     name: string;
+
+    @ApiProperty({
+        example: 'company-name',
+        description: 'The slug of the company'
+    })
+    slug: string;
     
     @ApiProperty({
-        example: 'Company website',
+        example: 'www.company.com',
         description: 'The website of the company',
         nullable: true
     })
     webSite?: string;
       
     @ApiProperty({
-        example: 'Company logo',
+        example: 'https://www.company.com/logo.png',
         description: 'The logo of the company',
         nullable: true
     })
     logo?: string;
-
-    @ApiProperty({
-        example: true,
-        description: 'Indicates whether the company is active or not.',
-        format: 'boolean',
-        default: true
-    })
-    isActive: boolean;
 }
