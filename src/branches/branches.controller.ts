@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, ParseUUIDPipe, Query, Delete } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { BranchesService } from './branches.service';
-import { Auth } from 'src/auth/decorators';
+import { Auth, GetUser } from 'src/auth/decorators';
 import { UserRole } from 'src/common/enums';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { User } from 'src/users/entities/user.entity';
+import { BranchesService } from './branches.service';
 import { CreateBranchDto, BranchResponseDto, PaginationBranchResponseDto, UpdateBranchDto } from './dto';
 
 @Controller('companies/:companySlug/branches')
@@ -18,8 +19,11 @@ export class BranchesController {
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Company not found.' })
-  create(@Param('companySlug') companySlug: string, @Body() createBranchDto: CreateBranchDto) {
-    return this.branchesService.create(companySlug, createBranchDto);
+  create(
+    @Param('companySlug') companySlug: string,
+    @Body() createBranchDto: CreateBranchDto,
+    @GetUser() user: User) {
+    return this.branchesService.create(companySlug, createBranchDto, user);
   }
 
   @Get()
@@ -31,11 +35,14 @@ export class BranchesController {
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Company not found.' })
-  findAll(@Param('companySlug') companySlug: string, @Query() paginationDto: PaginationDto) {
-    return this.branchesService.findAll(companySlug, paginationDto);
+  findAll(
+    @Param('companySlug') companySlug: string,
+    @Query() paginationDto: PaginationDto,
+    @GetUser() user: User) {
+    return this.branchesService.findAll(companySlug, paginationDto, user);
   }
 
-  @Get('search/:branchSlug')
+  @Get(':branchSlug')
   @Auth(UserRole.CUSTOMER, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'companySlug', description: 'Slug of the company to retrieve the branch from.' })
   @ApiParam({ name: 'branchSlug', description: 'Slug of the branch to retrieve.' })
@@ -43,8 +50,11 @@ export class BranchesController {
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Company or branch not found.' })
-  findOne(@Param('companySlug') companySlug: string, @Param('branchSlug') branchSlug: string) {
-    return this.branchesService.findOneBranchResponse(companySlug, branchSlug);
+  findOne(
+    @Param('companySlug') companySlug: string,
+    @Param('branchSlug') branchSlug: string,
+    @GetUser() user: User) {
+    return this.branchesService.findOneBranchResponse(companySlug, branchSlug, user);
   }
 
   @Patch(':id')
@@ -56,7 +66,25 @@ export class BranchesController {
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Company or branch not found.' })
-  update(@Param('companySlug') companySlug: string, @Param('id', ParseUUIDPipe) id: string, @Body() updateBranchDto: UpdateBranchDto) {
-    return this.branchesService.update(companySlug, id, updateBranchDto);
+  update(
+    @Param('companySlug') companySlug: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateBranchDto: UpdateBranchDto,
+    @GetUser() user: User) {
+    return this.branchesService.update(companySlug, id, updateBranchDto, user);
+  }
+
+  @Delete(':id')
+  @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
+  @ApiParam({ name: 'companySlug', description: 'Slug of the company to remove the branch for.' })
+  @ApiParam({ name: 'id', description: 'Id of the branch to remove.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
+  @ApiResponse({ status: 404, description: 'Not found. Company or branch not found.' })
+  remove(
+    @Param('companySlug') companySlug: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @GetUser() user: User) {
+    return this.branchesService.remove(companySlug, id, user);
   }
 }

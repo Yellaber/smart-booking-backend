@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
 import { CompaniesService } from 'src/companies/companies.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { UserRole } from 'src/common/enums';
 import { DbException } from 'src/common/helpers/db-exception.helper';
+import { Company } from 'src/companies/entities/company.entity';
+import { User } from 'src/users/entities/user.entity';
 import { Branch } from './entities/branch.entity';
 import { BranchResponseDto, CreateBranchDto, PaginationBranchResponseDto, UpdateBranchDto } from './dto';
 
@@ -18,8 +21,9 @@ export class BranchesService {
     private readonly branchRepository: Repository<Branch>
   ) {}
 
-  async create(companySlug: string, createBranchDto: CreateBranchDto) {
+  async create(companySlug: string, createBranchDto: CreateBranchDto, user: User) {
     const company = await this.companiesService.findOne(companySlug);
+    this.validatePermission(company, user);
     
     try {
       const branch = this.branchRepository.create({
@@ -33,33 +37,27 @@ export class BranchesService {
     }
   }
 
-  async findAll(companySlug: string, paginationDto: PaginationDto) {
+  async findAll(companySlug: string, paginationDto: PaginationDto, user: User) {
+    const company = await this.companiesService.findOne(companySlug);
+    this.validatePermission(company, user);
     const { limit = 10, offset = 0 } = paginationDto;
-    const companyFound = await this.companiesService.findOne(companySlug);
-    const [ branches, totalPage ] = await this.branchRepository.findAndCount({
-      where: { company: { id: companyFound.id } },
+    const [ branches, total ] = await this.branchRepository.findAndCount({
+      where: { company: { id: company.id }, isActive: true },
       take: limit,
       skip: offset
     });
 
-    return this.getPaginationBranchResponse(totalPage, branches);
+    return this.getPaginationBranchResponse(total, branches);
   }
 
-  async findOneBranchResponse(companyTerm: string, branchTerm: string) {
-    const branch = await this.findOne(companyTerm, branchTerm);
+  async findOneBranchResponse(companyTerm: string, branchTerm: string, user: User) {
+    const branch = await this.findOne(companyTerm, branchTerm, user);
     return this.getBranchResponse(branch);
   }
 
-  async update(companySlug: string, id: string, updateBranchDto: UpdateBranchDto) {
-    await this.findOne(companySlug, id);
-
-    const branch = await this.branchRepository.preload({
-      id,
-      ...updateBranchDto,
-    });
-
-    if(!branch)
-      throw new NotFoundException(`Branch with id '${ id }' not found`);
+  async update(companySlug: string, id: string, updateBranchDto: UpdateBranchDto, user: User) {
+    const branchFound = await this.findOne(companySlug, id, user);
+    const branch = this.branchRepository.merge(branchFound, updateBranchDto);
 
     try {
       await this.branchRepository.save(branch);
@@ -69,10 +67,17 @@ export class BranchesService {
     }
   }
 
-  private async findOne(companySlug: string, branchTerm: string) {
+  async remove(companySlug: string, id: string, user: User) {
+    const branch = await this.findOne(companySlug, id, user);
+    branch.isActive = false;
+    await this.branchRepository.save(branch);
+  }
+
+  private async findOne(companySlug: string, branchTerm: string, user: User) {
     const companyFound = await this.companiesService.findOne(companySlug);
+    this.validatePermission(companyFound, user);
     const company = { id: companyFound.id };
-    const query = isUUID(branchTerm)? { id: branchTerm, company }: { slug: branchTerm.toLowerCase(), company };
+    const query = isUUID(branchTerm)? { id: branchTerm, company, isActive: true }: { slug: branchTerm.toLowerCase(), company, isActive: true };
     const branch = await this.branchRepository.findOne({
       where: query,
       relations: { company: true }
@@ -83,13 +88,22 @@ export class BranchesService {
     return branch;
   }
 
+  private validatePermission(company: Company, user: User) {
+    if(user.roles.includes(UserRole.SUPER_USER)) return;
+  
+    const { company: companyUser } = user;
+      
+    if(company.id !== companyUser.id)
+      throw new ForbiddenException('User does not have permission to access this resource');
+  }
+
   private getBranchResponse(branch: Branch): BranchResponseDto {
-    const { company, ...restBranch } = branch;
+    const { company, isActive, ...restBranch } = branch;
     return restBranch;
   }
 
-  private getPaginationBranchResponse(totalPage: number, branches: Branch[]): PaginationBranchResponseDto {
+  private getPaginationBranchResponse(total: number, branches: Branch[]): PaginationBranchResponseDto {
     const branchesResponse = branches.map(this.getBranchResponse);
-    return { totalPage, branches: branchesResponse };
+    return { total, branches: branchesResponse };
   }
 }
