@@ -66,10 +66,7 @@ export class CompaniesService {
 
   async findOne(term: string) {
     const query = isUUID(term)? { id: term, isActive: true }: { slug: term.toLowerCase(), isActive: true };
-    const company = await this.companyRepository.findOne({
-      where: query,
-      relations: { branches: true }
-    });
+    const company = await this.companyRepository.findOne({ where: query });
     
     if(!company)
       throw new NotFoundException(`Company with '${ term }' not found`);

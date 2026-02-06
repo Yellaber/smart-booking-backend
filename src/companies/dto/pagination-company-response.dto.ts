@@ -17,8 +17,7 @@ export class PaginationCompanyResponseDto {
                 name: 'company name',
                 slug: 'company-name',
                 webSite: 'https://www.company.com',
-                logo: 'https://www.company.com/logo.png',
-                isActive: true
+                logo: 'https://www.company.com/logo.png'
             },
         ],
         type: [ CompanyResponseDto ],
