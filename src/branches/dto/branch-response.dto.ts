@@ -14,6 +14,13 @@ export class BranchResponseDto {
         format: 'string',
     })
     name: string;
+
+    @ApiProperty({
+        example: 'main-branch',
+        description: 'Slug of the branch.',
+        format: 'string',
+    })
+    slug: string;
     
     @ApiProperty({
         example: 'Cra 8 # 14-25',
@@ -30,7 +37,7 @@ export class BranchResponseDto {
     city: string;
     
     @ApiProperty({
-        example: 'company@gmail.com',
+        example: 'branchname@gmail.com',
         description: 'Email address of the branch.',
         format: 'string',
         required: false
@@ -38,9 +45,10 @@ export class BranchResponseDto {
     email?: string;
 
     @ApiProperty({
-        example: true,
-        description: 'Indicates whether the branch is active or not.',
-        format: 'boolean'
+        example: '1234567890',
+        description: 'Phone number of the branch.',
+        format: 'string',
+        required: false
     })
-    isActive: boolean;
+    phone?: string;
 }

@@ -4,10 +4,10 @@ import { BranchResponseDto } from './branch-response.dto';
 export class PaginationBranchResponseDto {
     @ApiProperty({
         example: 1,
-        description: 'Total number of pages',
+        description: 'Total number of branches',
         format: 'number'
     })
-    totalPage: number;
+    total: number;
 
     @ApiProperty({
         example: [
@@ -18,8 +18,7 @@ export class PaginationBranchResponseDto {
                 address: 'Cra 123 #45-67',
                 city: 'cartagena',
                 phone: '1234567890',
-                email: 'branchname@company.com',
-                isActive: true
+                email: 'branchname@company.com'
             }
         ],
         type: [ BranchResponseDto ],

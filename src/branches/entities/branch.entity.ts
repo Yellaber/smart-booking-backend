@@ -2,7 +2,7 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, PrimaryGenerated
 import { Company } from 'src/companies/entities/company.entity';
 
 @Entity({ name: 'branches' })
-@Unique('UQ_company_name', [ 'company', 'name' ])
+@Unique('UQ_company_branch_name', [ 'company', 'name' ])
 export class Branch {
     @PrimaryGeneratedColumn( 'uuid' )
     id: string;
@@ -28,7 +28,7 @@ export class Branch {
     @Column('boolean', { default: true })
     isActive: boolean;
 
-    @ManyToOne(() => Company, (company) => company.branches, { nullable: false })
+    @ManyToOne(() => Company, (company) => company.branches)
     company: Company;
 
     @BeforeInsert()
