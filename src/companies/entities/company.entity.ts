@@ -1,6 +1,7 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Specialty } from 'src/specialties/entities/specialty.entity';
 
 @Entity({ name: 'companies' })
 export class Company {
@@ -30,6 +31,9 @@ export class Company {
 
     @OneToMany(() => User, (user) => user.company)
     users: User[];
+
+    @OneToMany(() => Specialty, (specialty) => specialty.company)
+    specialities: Specialty[];
 
     @BeforeInsert()
     @BeforeUpdate()
