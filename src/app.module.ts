@@ -7,6 +7,7 @@ import { CommonModule } from './common/common.module';
 import { CompaniesModule } from './companies/companies.module';
 import { BranchesModule } from './branches/branches.module';
 import { SetupModule } from './setup/setup.module';
+import { SpecialtiesModule } from './specialties/specialties.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { SetupModule } from './setup/setup.module';
     CommonModule,
     CompaniesModule,
     BranchesModule,
-    SetupModule
+    SetupModule,
+    SpecialtiesModule
   ]
 })
 export class AppModule {}
