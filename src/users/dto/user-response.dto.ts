@@ -87,12 +87,4 @@ export class UserResponseDto {
         default: [ UserRole.CUSTOMER ]
     })
     roles: UserRole[];
-    
-    @ApiProperty({
-        example: true,
-        description: 'Indicates whether the user account is active or not.',
-        format: 'boolean',
-        default: true
-    })
-    isActive: boolean;
 }

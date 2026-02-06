@@ -1,7 +1,7 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { Company } from 'src/companies/entities/company.entity';
 import { UserRole } from 'src/common/enums/user-role.enum';
 import { IdType } from 'src/common/enums';
+import { Company } from 'src/companies/entities/company.entity';
 
 @Entity({ name: 'users' })
 @Unique('UQ_company_idNumber', [ 'company', 'idNumber' ])
@@ -41,7 +41,7 @@ export class User {
     @Column('text', { nullable: true })
     image: string;
 
-    @Column({ type: 'enum', enum: UserRole, array: true, default: [UserRole.CUSTOMER] })
+    @Column({ type: 'enum', enum: UserRole, array: true, default: [ UserRole.CUSTOMER ] })
     roles: UserRole[];
 
     @Column('boolean', { default: true })
@@ -53,9 +53,17 @@ export class User {
     @BeforeInsert()
     @BeforeUpdate()
     checkFieldsBeforeInsert() {
-        this.fullName = this.fullName.toLowerCase();
-        this.userName = this.userName.toLowerCase();
-        this.email = this.email.toLowerCase();
+        if(this.fullName)
+            this.fullName = this.fullName.toLowerCase();
+
+        if(this.userName)
+            this.userName = this.userName.toLowerCase();
+
+        if(this.address)
+            this.address = this.address.toLowerCase();
+
+        if(this.email)
+            this.email = this.email.toLowerCase();
 
         if(this.city)
             this.city = this.city.toLowerCase();

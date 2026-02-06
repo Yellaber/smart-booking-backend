@@ -1,12 +1,11 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsEnum, IsOptional } from 'class-validator';
-import { RegisterUserDto } from './register-user.dto';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { IsBoolean, IsEnum, IsOptional } from 'class-validator';
 import { UserRole } from 'src/common/enums/user-role.enum';
+import { RegisterUserDto } from './register-user.dto';
 
 export class UpdateUserDto extends PartialType(RegisterUserDto) {
     @ApiProperty({
-        example: [UserRole.CUSTOMER, UserRole.SPECIALIST],
+        example: [ UserRole.CUSTOMER, UserRole.SPECIALIST ],
         description: 'Roles assigned to the user.',
         enum: UserRole,
         isArray: true

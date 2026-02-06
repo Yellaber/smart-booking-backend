@@ -4,10 +4,10 @@ import { UserResponseDto } from './user-response.dto';
 export class PaginationUserResponseDto {
     @ApiProperty({
         example: 1,
-        description: 'Total number of pages.',
-        format: 'number',
+        description: 'Total number of users.',
+        format: 'number'
     })
-    totalPages: number;
+    total: number;
 
     @ApiProperty({
         example: [
@@ -23,11 +23,10 @@ export class PaginationUserResponseDto {
                 city: 'cartagena',
                 image: null,
                 roles: ['customer', 'specialist'],
-                isActive: true
             },
         ],
-        description: 'List of users in the current page.',
-        type: () => [ UserResponseDto ]
+        type: [ UserResponseDto ],
+        description: 'List of users in the current page.'
     })
     users: UserResponseDto[];
 }
