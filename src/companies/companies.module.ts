@@ -1,9 +1,9 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from 'src/auth/auth.module';
 import { CompaniesController } from './companies.controller';
 import { CompaniesService } from './companies.service';
 import { Company } from './entities/company.entity';
-import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [ CompaniesController ],

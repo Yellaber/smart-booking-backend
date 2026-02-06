@@ -1,10 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
-import { DbException } from 'src/common/helpers/db-exception.helper';
-import { Company } from './entities/company.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { UserRole } from 'src/common/enums';
+import { DbException } from 'src/common/helpers/db-exception.helper';
+import { User } from 'src/users/entities/user.entity';
+import { Company } from './entities/company.entity';
 import { CompanyResponseDto, CreateCompanyDto, PaginationCompanyResponseDto, UpdateCompanyDto } from './dto';
 
 @Injectable()
@@ -28,40 +30,25 @@ export class CompaniesService {
 
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    const [ companies, totalPages ] = await this.companyRepository.findAndCount({
+    const [ companies, total ] = await this.companyRepository.findAndCount({
+      where: { isActive: true },
       take: limit,
-      skip: offset,
-      relations: { branches: true }
+      skip: offset
     });
 
-    return this.getPaginationCompanyResponse(totalPages, companies);
+    return this.getPaginationCompanyResponse(total, companies);
   }
 
-  async findOne(term: string) {
-    const query = isUUID(term)? { id: term }: { slug: term.toLowerCase() };    
-    const company = await this.companyRepository.findOne({
-      where: query,
-      relations: { branches: true }
-    });
-    
-    if(!company)
-      throw new NotFoundException(`Company with '${ term }' not found`);
-    return company;
-  }
-
-  async findOneCompanyResponse(term: string) {
+  async findOneCompanyResponse(term: string, user: User) {
     const company = await this.findOne(term);
+    this.validatePermission(company, user);
     return this.getCompanyResponseDto(company);
   }
 
-  async update(id: string, updateCompanyDto: UpdateCompanyDto) {
-    const company = await this.companyRepository.preload({
-      id,
-      ...updateCompanyDto,
-    });
-
-    if(!company)
-      throw new NotFoundException(`Company with id '${ id }' not found`);
+  async update(id: string, updateCompanyDto: UpdateCompanyDto, user: User) {
+    const companyFound = await this.findOne(id);
+    this.validatePermission(companyFound, user);
+    const company = this.companyRepository.merge(companyFound, updateCompanyDto);
 
     try {
       await this.companyRepository.save(company);
@@ -71,13 +58,37 @@ export class CompaniesService {
     }
   }
 
+  async remove(id: string) {
+    const company = await this.findOne(id);
+    company.isActive = false;
+    await this.companyRepository.save(company);
+  }
+
+  async findOne(term: string) {
+    const query = isUUID(term)? { id: term, isActive: true }: { slug: term.toLowerCase(), isActive: true };
+    const company = await this.companyRepository.findOne({ where: query });
+    
+    if(!company)
+      throw new NotFoundException(`Company with '${ term }' not found`);
+    return company;
+  }
+
+  private validatePermission(company: Company, user: User) {
+    if(user.roles.includes(UserRole.SUPER_USER)) return;
+    
+    const { company: companyUser } = user;
+    
+    if(company.id !== companyUser.id)
+      throw new ForbiddenException('User does not have permission to access this resource');
+  }
+
   private getCompanyResponseDto(company: Company): CompanyResponseDto {
-    const { branches, users, ...restCompany } = company;
+    const { branches, users, specialties, isActive, ...restCompany } = company;
     return restCompany;
   }
 
-  private getPaginationCompanyResponse(totalPages: number, companies: Company[]): PaginationCompanyResponseDto {
+  private getPaginationCompanyResponse(total: number, companies: Company[]): PaginationCompanyResponseDto {
     const companiesResponse = companies.map(this.getCompanyResponseDto);
-    return { totalPages, companies: companiesResponse };
+    return { total, companies: companiesResponse };
   }
 }
