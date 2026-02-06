@@ -4,10 +4,10 @@ import { SpecialtyResponseDto } from './specialty-response.dto';
 export class PaginationSpecialtyResponseDto {
     @ApiProperty({
         example: 1,
-        description: 'The total number of pages.',
+        description: 'Total number of specialties.',
         format: 'number'
     })
-    totalPages: number;
+    total: number;
 
     @ApiProperty({
         example: [

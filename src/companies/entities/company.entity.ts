@@ -33,7 +33,7 @@ export class Company {
     users: User[];
 
     @OneToMany(() => Specialty, (specialty) => specialty.company)
-    specialities: Specialty[];
+    specialties: Specialty[];
 
     @BeforeInsert()
     @BeforeUpdate()

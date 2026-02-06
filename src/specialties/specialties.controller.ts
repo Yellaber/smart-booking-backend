@@ -29,8 +29,8 @@ export class SpecialtiesController {
   @Get()
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'companySlug', description: 'Slug of the company to create the specialty for' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of branches to return.' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of branches to skip.' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of specialties to return.' })
+  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of specialties to skip.' })
   @ApiResponse({ status: 200, description: 'Specialties retrieved successfully.', type: PaginationSpecialtyResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
@@ -42,7 +42,7 @@ export class SpecialtiesController {
     return this.specialtiesService.findAll(companySlug, paginationDto, user);
   }
 
-  @Get('search/:id')
+  @Get(':id')
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'companySlug', description: 'Slug of the company to create the specialty for' })
   @ApiParam({ name: 'id', description: 'Id of the specialty to retrieve.' })

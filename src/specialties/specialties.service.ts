@@ -22,7 +22,7 @@ export class SpecialtiesService {
 
   async create(companySlug: string, createSpecialtyDto: CreateSpecialtyDto, user: User) {
     const company = await this.companiesService.findOne(companySlug);
-    this.validatePermission(companySlug, company, user);
+    this.validatePermission(company, user);
 
     try {
       const specialty = this.specialtyRepository.create({
@@ -38,15 +38,15 @@ export class SpecialtiesService {
 
   async findAll(companySlug: string, paginationDto: PaginationDto, user: User) {
     const company = await this.companiesService.findOne(companySlug);
-    this.validatePermission(companySlug, company, user);
+    this.validatePermission(company, user);
     const { limit = 10, offset = 0 } = paginationDto;
-    const [ specialties, totalPage ] = await this.specialtyRepository.findAndCount({
+    const [ specialties, total ] = await this.specialtyRepository.findAndCount({
       where: { company: { id: company.id }, isActive: true },
       take: limit,
       skip: offset
     });
 
-    return this.getPaginationSpecialtyResponse(totalPage, specialties);
+    return this.getPaginationSpecialtyResponse(total, specialties);
   }
 
   async findOneSpecialtyResponse(companySlug: string, term: string, user: User) {
@@ -55,15 +55,8 @@ export class SpecialtiesService {
   }
 
   async update(companySlug: string, id: string, updateSpecialtyDto: UpdateSpecialtyDto, user: User) {
-    await this.findOne(companySlug, id, user);
-    
-    const specialty = await this.specialtyRepository.preload({
-      id,
-      ...updateSpecialtyDto,
-    });
-    
-    if(!specialty)
-      throw new NotFoundException(`Specialty with id '${ id }' not found`);
+    const specialty = await this.findOne(companySlug, id, user);    
+    this.specialtyRepository.merge(specialty, updateSpecialtyDto);
     
     try {
       await this.specialtyRepository.save(specialty);
@@ -74,14 +67,14 @@ export class SpecialtiesService {
   }
 
   async remove(companySlug: string, id: string, user: User) {
-    await this.findOne(companySlug, id, user);
-    const updateSpecialtyDto = { isActive: false };
-    await this.update(companySlug, id, updateSpecialtyDto, user);
+    const specialty = await this.findOne(companySlug, id, user);
+    specialty.isActive = false;
+    await this.specialtyRepository.save(specialty);
   }
 
   private async findOne(companySlug: string, specialtyId: string, user: User) {
     const companyFound = await this.companiesService.findOne(companySlug);
-    this.validatePermission(companySlug, companyFound, user);
+    this.validatePermission(companyFound, user);
     const company = { id: companyFound.id };
     const query = { id: specialtyId, company, isActive: true };
     const specialty = await this.specialtyRepository.findOne({ 
@@ -94,10 +87,12 @@ export class SpecialtiesService {
     return specialty;
   }
 
-  private validatePermission(companySlug: string, company: Company, user: User) {
+  private validatePermission(company: Company, user: User) {
+    if(user.roles.includes(UserRole.SUPER_USER)) return;
+
     const { company: companyUser } = user;
     
-    if(companySlug === 'system' && user.roles.includes(UserRole.ADMIN) || company.id !== companyUser.id)
+    if(company.id !== companyUser.id)
       throw new ForbiddenException('User does not have permission to access this resource');
   }
 
@@ -106,8 +101,8 @@ export class SpecialtiesService {
     return userSpecialty;
   }
 
-  private getPaginationSpecialtyResponse(totalPages: number, specialties: Specialty[]): PaginationSpecialtyResponseDto {
+  private getPaginationSpecialtyResponse(total: number, specialties: Specialty[]): PaginationSpecialtyResponseDto {
     const specialtiesResponse = specialties.map(this.getSpecialtyResponse);
-    return { totalPages, specialties: specialtiesResponse };
+    return { total, specialties: specialtiesResponse };
   }
 }

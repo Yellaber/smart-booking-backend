@@ -13,7 +13,7 @@ export class Specialty {
     @Column('text', { nullable: true })
     description: string;
 
-    @ManyToOne(() => Company, (company) => company.specialities)
+    @ManyToOne(() => Company, (company) => company.specialties)
     company: Company;
 
     @Column('boolean', { default: true })
