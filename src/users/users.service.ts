@@ -1,5 +1,7 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { CompaniesService } from 'src/companies/companies.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
@@ -14,6 +16,7 @@ export class UsersService {
   private readonly dbException = new DbException('UsersService');
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly companiesService: CompaniesService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -39,6 +42,13 @@ export class UsersService {
 
   async update(companySlug: string, id: string, updateUserDto: UpdateUserDto, user: User) {
     const userFound = await this.findOne(companySlug, id, user);
+
+    if(updateUserDto.password) {
+      const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
+      const passwordBcrypt = await bcrypt.hash(updateUserDto.password, saltRounds);
+      updateUserDto.password = passwordBcrypt;
+    }
+
     const userToUpdate = this.userRepository.merge(userFound, updateUserDto);
 
     try {
