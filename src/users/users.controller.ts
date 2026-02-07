@@ -27,20 +27,20 @@ export class UsersController {
     return this.usersService.findAll(companySlug, paginationDto, user);
   }
 
-  @Get(':term')
+  @Get(':id')
   @Auth()
   @ApiParam({ name: 'companySlug', description: 'Slug of the company to search the user.' })
-  @ApiParam({ name: 'term', description: 'Term to search for the user (UUID or userName).' })
+  @ApiParam({ name: 'id', description: 'ID of the user to search.' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully.', type: UserResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. User or company not found.' })
   findOne(
     @Param('companySlug') companySlug: string,
-    @Param('term') term: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @GetUser() user: User
   ) {
-    return this.usersService.findOneUserResponse(companySlug, term, user);
+    return this.usersService.findOneUserResponse(companySlug, id, user);
   }
 
   @Patch(':id')

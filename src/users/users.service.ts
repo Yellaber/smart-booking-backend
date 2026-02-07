@@ -1,7 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { isUUID } from 'class-validator';
 import { CompaniesService } from 'src/companies/companies.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
@@ -33,8 +32,8 @@ export class UsersService {
     return this.getPaginationUserResponseDto(total, users);
   }
 
-  async findOneUserResponse(companySlug: string, term: string, user: User) {
-    const userFound = await this.findOne(companySlug, term, user);
+  async findOneUserResponse(companySlug: string, id: string, user: User) {
+    const userFound = await this.findOne(companySlug, id, user);
     return this.getUserResponseDto(userFound);
   }
 
@@ -56,26 +55,28 @@ export class UsersService {
     await this.userRepository.save(userFound);
   }
 
-  private async findOne(companySlug: string, term: string, user: User) {
+  private async findOne(companySlug: string, id: string, user: User) {
     const companyFound = await this.companiesService.findOne(companySlug);
-    this.validatePermission(companyFound, user);
+    this.validatePermission(companyFound, user, id);
     const company = { id: companyFound.id };
-    const query = isUUID(term)? { id: term, company, isActive: true }: { userName: term.toLowerCase(), company, isActive: true };
-    const userFound = await this.userRepository.findOne({ where: query });
+    const userFound = await this.userRepository.findOne({ where: { id, company, isActive: true } });
     
     if(!userFound)
-      throw new NotFoundException(`User with '${ term }' not found`);
+      throw new NotFoundException(`User with '${ id }' not found`);
 
     return userFound;
   }
 
-  private validatePermission(company: Company, user: User) {
-    if(user.roles.includes(UserRole.SUPER_USER)) return;
+  private validatePermission(company: Company, user: User, id: string = '') {
+    if(user.roles.includes(UserRole.SUPER_USER))
+      return;
   
-    const { company: companyUser } = user;
-  
-    if(company.id !== companyUser.id)
-      throw new ForbiddenException('User does not have permission to access this resource');
+    const { company: companyUser, id: userId } = user;
+
+    if(company.id === companyUser.id && (user.roles.includes(UserRole.ADMIN) || (userId === id)))
+      return;
+
+    throw new ForbiddenException('User does not have permission to access this resource');
   }
 
   private getUserResponseDto(user: User): UserResponseDto {

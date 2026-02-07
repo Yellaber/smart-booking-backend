@@ -17,7 +17,7 @@ export class PaginationUserResponseDto {
                 idNumber: '1234567890',
                 fullName: 'john doe',
                 userName: 'john-doe',
-                address: 'Cra 8 # 14-25',
+                address: 'cra 8 # 14-25',
                 email: 'johndoe@gmail.com',
                 phone: null,
                 city: 'cartagena',
