@@ -5,7 +5,7 @@ import { IdType } from 'src/common/enums';
 export class RegisterUserDto {
     @ApiProperty({
         example: 'CC',
-        description: 'Type of identification document. It must be a valid IdType enum value. It must have 3 characters maximum.',
+        description: 'Type of identification document of the user. It must be a valid IdType enum value. It must have 3 characters maximum.',
         enum: IdType,
         format: 'string'
     })
@@ -16,7 +16,7 @@ export class RegisterUserDto {
 
     @ApiProperty({
         example: '1234567890',
-        description: 'Identification number of the profile owner. It must have 12 characters maximum.',
+        description: 'Identification number of the user. It must have 12 characters maximum.',
         format: 'string'
     })
     @IsNumberString()
@@ -26,7 +26,7 @@ export class RegisterUserDto {
 
     @ApiProperty({
         example: 'john doe',
-        description: 'Full name of the profile owner. It must have 30 characters maximum.',
+        description: 'Full name of the user account. It must have 30 characters maximum.',
         format: 'string'
     })
     @IsString()
@@ -58,7 +58,7 @@ export class RegisterUserDto {
 
     @ApiProperty({
         example: 'Cra 8 # 14-25',
-        description: 'Address of the profile owner. It must have 50 characters maximum.',
+        description: 'Address of the user account. It must have 50 characters maximum.',
         format: 'string',
         required: false
     })
@@ -70,7 +70,7 @@ export class RegisterUserDto {
         
     @ApiProperty({
         example: 'johndoe@gmail.com',
-        description: 'Email address of the profile owner. It must have 40 characters maximum.',
+        description: 'Email address of the user account. It must have 40 characters maximum.',
         format: 'string',
         required: false
     })
@@ -80,7 +80,7 @@ export class RegisterUserDto {
         
     @ApiProperty({
         example: '1234567890',
-        description: 'Phone number of the profile owner. It must have 10 characters maximum.',
+        description: 'Phone number of the user account. It must have 10 characters maximum.',
         format: 'string',
         required: false
     })
@@ -92,7 +92,7 @@ export class RegisterUserDto {
     
     @ApiProperty({
         example: 'cartagena',
-        description: 'City where the profile owner resides. It must have 20 characters maximum.',
+        description: 'City where the user resides. It must have 20 characters maximum.',
         format: 'string',
         required: false
     })
@@ -104,7 +104,7 @@ export class RegisterUserDto {
     
     @ApiProperty({
         example: 'https://example.com/images/profile.jpg',
-        description: 'URL of the profile image. It must have 40 characters maximum.',
+        description: 'URL of the user account image. It must have 40 characters maximum.',
         format: 'string',
         required: false
     })

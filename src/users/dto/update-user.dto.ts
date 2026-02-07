@@ -1,26 +1,17 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsBoolean, IsEnum, IsOptional } from 'class-validator';
-import { RegisterUserDto } from './register-user.dto';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { IsEnum, IsOptional } from 'class-validator';
 import { UserRole } from 'src/common/enums/user-role.enum';
+import { RegisterUserDto } from './register-user.dto';
 
 export class UpdateUserDto extends PartialType(RegisterUserDto) {
     @ApiProperty({
-        example: [UserRole.CUSTOMER, UserRole.SPECIALIST],
+        example: [ UserRole.CUSTOMER, UserRole.SPECIALIST ],
         description: 'Roles assigned to the user.',
         enum: UserRole,
+        required: false,
         isArray: true
     })
     @IsEnum(UserRole, { each: true })
     @IsOptional()
     roles?: UserRole[];
-
-    @ApiProperty({
-        example: true,
-        description: 'Indicates whether the user account is active or not.',
-        format: 'boolean'
-    })
-    @IsBoolean()
-    @IsOptional()
-    isActive?: boolean;
 }

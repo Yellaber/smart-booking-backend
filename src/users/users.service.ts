@@ -1,12 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { isUUID } from 'class-validator';
 import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
 import { CompaniesService } from 'src/companies/companies.service';
-import { DbException } from 'src/common/helpers/db-exception.helper';
-import { User } from './entities/user.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { UserRole } from 'src/common/enums';
+import { DbException } from 'src/common/helpers/db-exception.helper';
+import { Company } from 'src/companies/entities/company.entity';
+import { User } from './entities/user.entity';
 import { PaginationUserResponseDto, UpdateUserDto, UserResponseDto } from './dto';
 
 @Injectable()
@@ -14,76 +16,86 @@ export class UsersService {
   private readonly dbException = new DbException('UsersService');
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly companiesService: CompaniesService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async findAll(companySlug: string, paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0 } = paginationDto;
+  async findAll(companySlug: string, paginationDto: PaginationDto, user: User) {
     const companyFound = await this.companiesService.findOne(companySlug);
-    const [ users, totalPage ] = await this.userRepository.findAndCount({
-      where: { company: { id: companyFound.id } },
+    this.validatePermission(companyFound, user);
+    const { limit = 10, offset = 0 } = paginationDto;
+    const [ users, total ] = await this.userRepository.findAndCount({
+      where: { company: { id: companyFound.id }, isActive: true },
       take: limit,
       skip: offset
     });
 
-    return this.getPaginationUserResponseDto(totalPage, users);
+    return this.getPaginationUserResponseDto(total, users);
   }
 
-  async findOneUserResponse(companySlug: string, term: string) {
-    const user = await this.findOne(companySlug, term);
-    return this.getUserResponseDto(user);
+  async findOneUserResponse(companySlug: string, id: string, user: User) {
+    const userFound = await this.findOne(companySlug, id, user);
+    return this.getUserResponseDto(userFound);
   }
 
-  async update(companySlug: string, id: string, updateUserDto: UpdateUserDto) {
-    await this.findOne(companySlug, id);
+  async update(companySlug: string, id: string, updateUserDto: UpdateUserDto, user: User) {
+    const userFound = await this.findOne(companySlug, id, user);
 
-    if(updateUserDto.password)
-      updateUserDto.password = bcrypt.hashSync(updateUserDto.password, 10);
+    if(updateUserDto.password) {
+      const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
+      const passwordBcrypt = await bcrypt.hash(updateUserDto.password, saltRounds);
+      updateUserDto.password = passwordBcrypt;
+    }
 
-    const user = await this.userRepository.preload({
-      id,
-      ...updateUserDto,
-    });
-
-    if(!user)
-      throw new NotFoundException(`User with id '${ id }' not found`);
+    const userToUpdate = this.userRepository.merge(userFound, updateUserDto);
 
     try {
-      await this.userRepository.save(user);
-      return this.getUserResponseDto(user);
+      await this.userRepository.save(userToUpdate);
+      return this.getUserResponseDto(userToUpdate);
     } catch(error) {
       return this.dbException.handle(error);
     }
   }
 
-  me(companySlug: string, user: User) {
-    const { id } = user;
-    return this.findOneUserResponse(companySlug, id);
+  async remove(companySlug: string, id: string, user: User) {
+    const userFound = await this.findOne(companySlug, id, user);
+    userFound.isActive = false;
+    await this.userRepository.save(userFound);
   }
 
-  private async findOne(companySlug: string, term: string) {
+  private async findOne(companySlug: string, id: string, user: User) {
     const companyFound = await this.companiesService.findOne(companySlug);
+    this.validatePermission(companyFound, user, id);
     const company = { id: companyFound.id };
-    const query = isUUID(term)? { id: term, company }: { userName: term.toLowerCase(), company };
-    const user = await this.userRepository.findOne({ 
-      where: query,
-      relations: { company: true }
-    });
-      
-    if(!user)
-      throw new NotFoundException(`User with '${ term }' not found`);
-    return user;
+    const userFound = await this.userRepository.findOne({ where: { id, company, isActive: true } });
+    
+    if(!userFound)
+      throw new NotFoundException(`User with '${ id }' not found`);
+
+    return userFound;
+  }
+
+  private validatePermission(company: Company, user: User, id: string = '') {
+    if(user.roles.includes(UserRole.SUPER_USER))
+      return;
+  
+    const { company: companyUser, id: userId } = user;
+
+    if(company.id === companyUser.id && (user.roles.includes(UserRole.ADMIN) || (userId === id)))
+      return;
+
+    throw new ForbiddenException('User does not have permission to access this resource');
   }
 
   private getUserResponseDto(user: User): UserResponseDto {
-    const { password, company, ...userResponse }  = user;
+    const { password, company, isActive, ...userResponse }  = user;
     return userResponse;
   }
 
-  private getPaginationUserResponseDto(totalPages: number, users: User[]): PaginationUserResponseDto {
+  private getPaginationUserResponseDto(total: number, users: User[]): PaginationUserResponseDto {
     const usersResponse = users.map(this.getUserResponseDto);
-    return { totalPages, users: usersResponse };
+    return { total, users: usersResponse };
   }
 }
