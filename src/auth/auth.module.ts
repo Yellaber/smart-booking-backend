@@ -1,13 +1,13 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { CompaniesModule } from 'src/companies/companies.module';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from 'src/users/entities/user.entity';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 
 @Module({
   controllers: [ AuthController ],

@@ -2,14 +2,14 @@ import { forwardRef, Inject, Injectable, UnauthorizedException } from '@nestjs/c
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { User } from 'src/users/entities/user.entity';
-import { Company } from 'src/companies/entities/company.entity';
+import { Repository } from 'typeorm';
 import { CompaniesService } from 'src/companies/companies.service';
+import { Company } from 'src/companies/entities/company.entity';
 import { RegisterUserDto, UserResponseDto } from 'src/users/dto';
+import { User } from 'src/users/entities/user.entity';
 import { LoginResponseDto, LoginUserDto, RegisterResponseDto } from './dto';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
