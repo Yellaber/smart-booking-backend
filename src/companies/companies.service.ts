@@ -83,7 +83,7 @@ export class CompaniesService {
   }
 
   private getCompanyResponseDto(company: Company): CompanyResponseDto {
-    const { branches, users, specialties, isActive, ...restCompany } = company;
+    const { branches, users, isActive, ...restCompany } = company;
     return restCompany;
   }
 
