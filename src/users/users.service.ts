@@ -65,7 +65,7 @@ export class UsersService {
     await this.userRepository.save(userFound);
   }
 
-  private async findOne(companySlug: string, id: string, user: User) {
+  async findOne(companySlug: string, id: string, user: User) {
     const companyFound = await this.companiesService.findOne(companySlug);
     this.validatePermission(companyFound, user, id);
     const company = { id: companyFound.id };

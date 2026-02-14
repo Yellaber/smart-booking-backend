@@ -1,5 +1,6 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Company } from 'src/companies/entities/company.entity';
+import { Specialist } from 'src/specialists/entities/specialist.entity';
 
 @Entity({ name: 'branches' })
 @Unique('UQ_company_branch_name', [ 'company', 'name' ])
@@ -30,6 +31,9 @@ export class Branch {
 
     @ManyToOne(() => Company, (company) => company.branches)
     company: Company;
+
+    @OneToMany(() => Specialist, (specialist) => specialist.branch)
+    specialists: Specialist[];
 
     @BeforeInsert()
     @BeforeUpdate()

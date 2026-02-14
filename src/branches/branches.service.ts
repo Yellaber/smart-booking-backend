@@ -73,7 +73,7 @@ export class BranchesService {
     await this.branchRepository.save(branch);
   }
 
-  private async findOne(companySlug: string, branchTerm: string, user: User) {
+  async findOne(companySlug: string, branchTerm: string, user: User) {
     const companyFound = await this.companiesService.findOne(companySlug);
     this.validatePermission(companyFound, user);
     const company = { id: companyFound.id };
