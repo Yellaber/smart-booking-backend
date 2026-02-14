@@ -15,9 +15,8 @@ export class SpecialistsController {
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchTerm', description: 'Term to search for the branch. Term can be slug or id.' })
   @ApiResponse({ status: 201, description: 'Specialist created successfully.', type: SpecialistResponseDto })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
+  @ApiResponse({ status: 400, description: 'Bad request. The user provided is not a specialist.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. User is not a specialist.' })
   @ApiResponse({ status: 404, description: 'Not found. Branch not found.' })
   create(
     @Param('branchTerm') branchTerm: string,

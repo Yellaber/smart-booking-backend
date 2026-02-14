@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BranchesService } from 'src/branches/branches.service';
@@ -88,20 +88,19 @@ export class SpecialistsService {
     const branch = await this.branchesService.findOne(companySlug, branchTerm, authenticatedUser);
     const userFound = await this.usersService.findOne(companySlug, userId, authenticatedUser);
 
-    if(userFound.roles.includes(UserRole.SPECIALIST)) {
-      try {
-        const specialist = this.specialistRepository.create({
-          branch,
-          user: userFound
-        });
-        await this.specialistRepository.save(specialist);
-        return this.getSpecialistResponse(specialist);
-      } catch(error) {
-       return this.dbException.handle(error);
-      }
-    }
+    if(!userFound.roles.includes(UserRole.SPECIALIST))
+      throw new BadRequestException('User is not a specialist');
 
-    throw new BadRequestException('User is not a specialist');
+    try {
+      const specialist = this.specialistRepository.create({
+        branch,
+        user: userFound
+      });
+      await this.specialistRepository.save(specialist);
+      return this.getSpecialistResponse(specialist);
+    } catch(error) {
+     return this.dbException.handle(error);
+    }
   }
 
   private async activeSpecialist(branchTerm: string, specialistId: string, authenticatedUser: User) {

@@ -3,7 +3,7 @@ import { IsUUID } from 'class-validator';
 
 export class CreateSpecialistDto {
     @ApiProperty({
-        example: 't1g2c3d4-e5f6-7g8h-9i0j-k3l2x3n4o5p6',
+        example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         description: 'User id.',
         format: 'uuid'
     })
