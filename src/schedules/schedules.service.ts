@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserRole } from 'src/common/enums';
@@ -83,6 +83,12 @@ export class SchedulesService {
     // TODO - Buscar citas relacionadas con el ID del Schedule. Si existen, permitir actualización, de lo contrario lanzar un BadRequest.
     const schedule = await this.findOne(specialistId, scheduleId, authenticatedUser);
     const scheduleUpdated = this.scheduleRepository.merge(schedule, updateScheduleDto);
+    const { startTime, endTime } = scheduleUpdated;
+    const startTimeSchedule = this.getTimeToSecond(startTime);
+    const endTimeSchedule = this.getTimeToSecond(endTime);
+    
+    if(startTimeSchedule >= endTimeSchedule)
+      throw new BadRequestException('Start time must be before end time');
 
     try {
       await this.scheduleRepository.save(scheduleUpdated);
@@ -95,7 +101,7 @@ export class SchedulesService {
   async status(specialistId: string, scheduleId: string, authenticatedUser: User) {
     const schedule = await this.findOne(specialistId, scheduleId, authenticatedUser);
     schedule.isActive = !schedule.isActive;
-    this.scheduleRepository.save(schedule);
+    await this.scheduleRepository.save(schedule);
     return this.getScheduleResponse(schedule);
   }
 

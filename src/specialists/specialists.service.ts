@@ -8,7 +8,7 @@ import { UserRole } from 'src/common/enums';
 import { DbException } from 'src/common/helpers/db-exception.helper';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
-import { CreateSpecialistDto, DataUserResponseDto, PaginationSpecialistResponseDto, SpecialistResponseDto, UpdateSpecialistDto } from './dto';
+import { CreateSpecialistDto, DataUserResponseDto, PaginationSpecialistResponseDto, SpecialistResponseDto } from './dto';
 import { Specialist } from './entities/specialist.entity';
 import { SpecialistQuery } from './interfaces/specialist-query.interface';
 
@@ -88,16 +88,11 @@ export class SpecialistsService {
     return this.getSpecialistResponse(specialist);
   }
 
-  async update(branchTerm: string, specialistId: string, updateSpecialistDto: UpdateSpecialistDto, authenticatedUser: User) {
-    const specialistFound = await this.findOne(branchTerm, specialistId, authenticatedUser);
-    const specialist = this.specialistRepository.merge(specialistFound, updateSpecialistDto);
-
-    try {
-      await this.specialistRepository.save(specialist);
-      return this.getSpecialistResponse(specialist);
-    } catch(error) {
-      return this.dbException.handle(error);
-    }
+  async status(branchTerm: string, specialistId: string, authenticatedUser: User) {
+    const specialist = await this.findOne(branchTerm, specialistId, authenticatedUser);
+    specialist.isActive = !specialist.isActive;
+    await this.specialistRepository.save(specialist);
+    return this.getSpecialistResponse(specialist);
   }
 
   private async findOne(branchTerm: string, specialistId: string, authenticatedUser: User) {

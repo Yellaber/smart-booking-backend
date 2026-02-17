@@ -4,7 +4,7 @@ import { DayOfWeek } from '../interfaces/day-of-week.enum';
 
 export class CreateScheduleDto {
   @ApiProperty({
-    example: 'Monday',
+    example: 'monday',
     description: 'Day of the week for the schedule.',
     enum: DayOfWeek,
   })

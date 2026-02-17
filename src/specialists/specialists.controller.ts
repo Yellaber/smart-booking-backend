@@ -4,7 +4,7 @@ import { Auth, GetUser } from 'src/auth/decorators';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
 import { User } from 'src/users/entities/user.entity';
-import { CreateSpecialistDto, PaginationSpecialistResponseDto, SpecialistResponseDto, UpdateSpecialistDto } from './dto';
+import { CreateSpecialistDto, PaginationSpecialistResponseDto, SpecialistResponseDto } from './dto';
 import { SpecialistsService } from './specialists.service';
 
 @Controller('branches/:branchTerm/specialists')
@@ -63,16 +63,14 @@ export class SpecialistsController {
   @ApiParam({ name: 'branchTerm', description: 'Term to search for the branch. Term can be slug or id.' })
   @ApiParam({ name: 'id', description: 'Id of the specialist to update status.' })
   @ApiResponse({ status: 200, description: 'Specialist updated successfully.', type: SpecialistResponseDto })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Branch or specialist not found.' })
   update(
     @Param('branchTerm') branchTerm: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateSpecialistDto: UpdateSpecialistDto,
     @GetUser() authenticatedUser: User
   ) {
-    return this.specialistsService.update(branchTerm, id, updateSpecialistDto, authenticatedUser);
+    return this.specialistsService.status(branchTerm, id, authenticatedUser);
   }
 }

@@ -67,7 +67,7 @@ export class SchedulesController {
   @ApiResponse({ status: 404, description: 'Not found. Specialist or schedule not found.' })
   findOne(
     @Param('specialistId', ParseUUIDPipe) specialistId: string,
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @GetUser() authenticatedUser: User
   ) {
     return this.schedulesService.findOneSheduleResponse(specialistId, id, authenticatedUser);
