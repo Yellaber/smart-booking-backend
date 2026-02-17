@@ -1,5 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Branch } from 'src/branches/entities/branch.entity';
+import { Schedule } from 'src/schedules/entities/schedule.entity';
 import { User } from 'src/users/entities/user.entity';
 
 @Entity('specialists')
@@ -8,6 +9,9 @@ export class Specialist {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column('boolean', { default: true })
+    isActive: boolean;
+    
     @ManyToOne(() => Branch, (branch) => branch.specialists)
     branch: Branch;
 
@@ -15,9 +19,6 @@ export class Specialist {
     @JoinColumn()
     user: User;
 
-    @Column('boolean', { default: true })
-    isActive: boolean;
-
-    @Column('boolean', { default: true })
-    isAvailable: boolean;
+    @OneToMany(() => Schedule, (schedule) => schedule.specialist)
+    schedules: Schedule[];
 }

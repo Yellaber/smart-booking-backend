@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, ParseUUIDPipe, Query } from '@nestjs/common';
+import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
 import { User } from 'src/users/entities/user.entity';
-import { CreateSpecialistDto, PaginationSpecialistResponseDto, SpecialistResponseDto, UpdateSpecialistDto } from './dto';
+import { CreateSpecialistDto, PaginationSpecialistResponseDto, SpecialistResponseDto } from './dto';
 import { SpecialistsService } from './specialists.service';
-import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 @Controller('branches/:branchTerm/specialists')
 export class SpecialistsController {
@@ -44,12 +44,12 @@ export class SpecialistsController {
   }
 
   @Get(':id')
-  @Auth(UserRole.CUSTOMER, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth()
   @ApiParam({ name: 'branchTerm', description: 'Term to search for the branch. Term can be slug or id.' })
   @ApiResponse({ status: 200, description: 'Specialist retrieved successfully.', type: SpecialistResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  @ApiResponse({ status: 404, description: 'Not found. Branch not found.' })
+  @ApiResponse({ status: 404, description: 'Not found. Branch or specialist not found.' })
   findOne(
     @Param('branchTerm') branchTerm: string,
     @Param('id', ParseUUIDPipe) id: string,
@@ -58,36 +58,19 @@ export class SpecialistsController {
     return this.specialistsService.findOneSpecialistResponse(branchTerm, id, authenticatedUser);
   }
 
-  @Patch(':id')
+  @Patch(':id/status')
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchTerm', description: 'Term to search for the branch. Term can be slug or id.' })
-  @ApiParam({ name: 'id', description: 'Id of the specialist to update.' })
+  @ApiParam({ name: 'id', description: 'Id of the specialist to update status.' })
   @ApiResponse({ status: 200, description: 'Specialist updated successfully.', type: SpecialistResponseDto })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Branch or specialist not found.' })
   update(
     @Param('branchTerm') branchTerm: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateSpecialistDto: UpdateSpecialistDto,
     @GetUser() authenticatedUser: User
   ) {
-    return this.specialistsService.update(branchTerm, id, updateSpecialistDto, authenticatedUser);
-  }
-
-  @Delete(':id')
-  @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
-  @ApiParam({ name: 'branchTerm', description: 'Term to search for the branch. Term can be slug or id.' })
-  @ApiParam({ name: 'id', description: 'Id of the specialist to remove.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  @ApiResponse({ status: 404, description: 'Not found. Branch or specialist not found.' })
-  remove(
-    @Param('branchTerm') branchTerm: string,
-    @Param('id', ParseUUIDPipe) id: string,
-    @GetUser() authenticatedUser: User
-  ) {
-    return this.specialistsService.remove(branchTerm, id, authenticatedUser);
+    return this.specialistsService.status(branchTerm, id, authenticatedUser);
   }
 }

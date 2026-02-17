@@ -3,6 +3,5 @@ export interface SpecialistQuery {
   branch: {
     id: string
   },
-  isActive?: boolean,
-  isAvailable?: boolean
+  isActive?: boolean
 }
