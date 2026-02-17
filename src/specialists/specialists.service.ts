@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BranchesService } from 'src/branches/branches.service';
@@ -24,18 +24,33 @@ export class SpecialistsService {
   ) {}
 
   async create(branchTerm: string, createSpecialistDto: CreateSpecialistDto, authenticatedUser: User) {
+    const { slug: companySlug } = authenticatedUser.company;
     const { userId } = createSpecialistDto;
-    const specialist = await this.activeSpecialist(branchTerm, userId, authenticatedUser);
-    return (!specialist)? await this.createSpecialist(branchTerm, createSpecialistDto, authenticatedUser): this.getSpecialistResponse(specialist);
+    const branch = await this.branchesService.findOne(companySlug, branchTerm, authenticatedUser);
+    const userFound = await this.usersService.findOne(companySlug, userId, authenticatedUser);
+
+    if(!userFound.roles.includes(UserRole.SPECIALIST))
+      throw new BadRequestException('User is not a specialist');
+
+    try {
+      const specialist = this.specialistRepository.create({
+        branch,
+        user: userFound
+      });
+      await this.specialistRepository.save(specialist);
+      return this.getSpecialistResponse(specialist);
+    } catch(error) {
+     return this.dbException.handle(error);
+    }
   }
 
   async findAll(branchTerm: string, paginationDto: PaginationDto, authenticatedUser: User) {
     const { slug: companySlug } = authenticatedUser.company;
     const branch = await this.branchesService.findOne(companySlug, branchTerm, authenticatedUser);
-    const query = this.getQuery(branch, authenticatedUser);
     const { limit = 10, offset = 0 } = paginationDto;
+    const specialistQuery = this.getSpecialistQuery(branch, authenticatedUser);
     const [ specialists, total ] = await this.specialistRepository.findAndCount({
-      where: query,
+      where: specialistQuery,
       take: limit,
       skip: offset,
       relations: { user: true }
@@ -44,17 +59,26 @@ export class SpecialistsService {
     return this.getPaginationSpecialistResponse(total, specialists);
   }
 
-  async findOne(branchTerm: string, specialistId: string, authenticatedUser: User) {
-    const { slug: companySlug } = authenticatedUser.company;
-    const branch = await this.branchesService.findOne(companySlug, branchTerm, authenticatedUser);
-    const query = this.getQuery(branch, authenticatedUser, specialistId);
+  async findOneById(specialistId: string) {
     const specialist = await this.specialistRepository.findOne({
-      where: query,
-      relations: { user: true }
+      where: { id: specialistId, isActive: true },
+      relations: { branch: true }
     });
 
     if(!specialist)
       throw new NotFoundException(`Specialist with '${ specialistId }' not found`);
+
+    return specialist;
+  }
+
+  async findOneByUserId(authenticatedUser: User) {
+    const specialist = await this.specialistRepository.findOne({
+      where: { user: { id: authenticatedUser.id }, isActive: true },
+      relations: { branch: true }
+    });
+
+    if(!specialist)
+      throw new NotFoundException(`Specialist with '${ authenticatedUser.id }' not found`);
 
     return specialist;
   }
@@ -76,56 +100,33 @@ export class SpecialistsService {
     }
   }
 
-  async remove(branchTerm: string, specialistId: string, authenticatedUser: User) {
-    const specialist = await this.findOne(branchTerm, specialistId, authenticatedUser);
-    specialist.isActive = false;
-    await this.specialistRepository.save(specialist);
-  }
+  private async findOne(branchTerm: string, specialistId: string, authenticatedUser: User) {
+    if(authenticatedUser.roles.includes(UserRole.SPECIALIST) && authenticatedUser.id !== specialistId)
+      throw new ForbiddenException('User does not have permission to access this resource');
 
-  private async createSpecialist(branchTerm: string, createSpecialistDto: CreateSpecialistDto, authenticatedUser: User) {
-    const { slug: companySlug } = authenticatedUser.company;
-    const { userId } = createSpecialistDto;
-    const branch = await this.branchesService.findOne(companySlug, branchTerm, authenticatedUser);
-    const userFound = await this.usersService.findOne(companySlug, userId, authenticatedUser);
-
-    if(!userFound.roles.includes(UserRole.SPECIALIST))
-      throw new BadRequestException('User is not a specialist');
-
-    try {
-      const specialist = this.specialistRepository.create({
-        branch,
-        user: userFound
-      });
-      await this.specialistRepository.save(specialist);
-      return this.getSpecialistResponse(specialist);
-    } catch(error) {
-     return this.dbException.handle(error);
-    }
-  }
-
-  private async activeSpecialist(branchTerm: string, specialistId: string, authenticatedUser: User) {
     const { slug: companySlug } = authenticatedUser.company;
     const branch = await this.branchesService.findOne(companySlug, branchTerm, authenticatedUser);
-    const specialistQuery = { id: specialistId, branch: { id: branch.id }, isActive: false };
-    const specialist = await this.specialistRepository.findOne({ where: specialistQuery });
+    const specialistQuery = this.getSpecialistQuery(branch, authenticatedUser, specialistId);
+    const specialist = await this.specialistRepository.findOne({
+      where: specialistQuery,
+      relations: { user: true }
+    });
 
-    if(specialist) {
-      specialist.isActive = true;
-      await this.specialistRepository.save(specialist);
-    }
+    if(!specialist)
+      throw new NotFoundException(`Specialist with '${ specialistId }' not found in branch '${ branchTerm }'`);
 
     return specialist;
   }
 
-  private getQuery(branch: Branch, authenticatedUser: User, specialistId?: string) {
+  private getSpecialistQuery(branch: Branch, authenticatedUser: User, specialistId?: string) {
     const { id } = branch;
-    let query: SpecialistQuery = { branch: { id }, isActive: true };
+    let query: SpecialistQuery = { branch: { id } };
     
     if(specialistId)
-      query = { ...query, id: specialistId };
+      query = { id: specialistId, ...query };
 
     return (authenticatedUser.roles.includes(UserRole.ADMIN) || authenticatedUser.roles.includes(UserRole.SUPER_USER))? 
-      query: { ...query, isAvailable: true };
+      query: { ...query, isActive: true };
   }
 
   private getDataUserResponse(authenticatedUser: User): DataUserResponseDto {
@@ -134,12 +135,11 @@ export class SpecialistsService {
   }
 
   private getSpecialistResponse(specialist: Specialist): SpecialistResponseDto {
-    const { id, user, isAvailable } = specialist;
+    const { id, user } = specialist;
     const dataUser = this.getDataUserResponse(user);
     return {
       id,
-      user: dataUser,
-      isAvailable
+      user: dataUser
     };
   }
 

@@ -1,15 +1,14 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsOptional } from 'class-validator';
+import { IsBoolean } from 'class-validator';
 import { CreateSpecialistDto } from './create-specialist.dto';
 
 export class UpdateSpecialistDto extends PartialType(CreateSpecialistDto) {
     @ApiProperty({
         example: true,
-        description: 'Specialist availability.',
-        required: false
+        description: 'Indicates whether the specialist is active or not.',
+        format: 'boolean'
     })
     @IsBoolean()
-    @IsOptional()
-    isAvailable?: boolean;
+    isActive: boolean;
 }

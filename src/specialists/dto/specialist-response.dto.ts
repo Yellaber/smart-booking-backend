@@ -19,10 +19,4 @@ export class SpecialistResponseDto {
         description: 'User data.'
     })
     user: DataUserResponseDto;
-
-    @ApiProperty({
-        example: true,
-        description: 'Specialist availability.'
-    })
-    isAvailable: boolean;
 }
