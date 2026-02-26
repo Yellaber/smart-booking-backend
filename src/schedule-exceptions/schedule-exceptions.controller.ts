@@ -47,7 +47,7 @@ export class ScheduleExceptionsController {
                  type: PaginationScheduleExceptionResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  findAllMySchedules(
+  findAllMyScheduleExceptions(
     @Query() paginationDto: PaginationDto,
     @GetUser() authenticatedUser: User
   ) {
@@ -91,7 +91,7 @@ export class ScheduleExceptionsController {
   @Auth(UserRole.SPECIALIST)
   @ApiParam({ name: 'id', description: 'Id of the schedule exception to update.' })
   @ApiResponse({ status: 200, description: 'Schedule exceptions updated successfully for the authenticated specialist.', 
-                 type: PaginationScheduleExceptionResponseDto })
+                 type: ScheduleExceptionResponseDto })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
@@ -106,9 +106,9 @@ export class ScheduleExceptionsController {
 
   @Patch(':specialistId/schedule-exceptions/:id')
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
-  @ApiParam({ name: 'specialistId', description: 'Id of the specialist to upodate a schedule exception.' })
+  @ApiParam({ name: 'specialistId', description: 'Id of the specialist to update a schedule exception.' })
   @ApiParam({ name: 'id', description: 'Id of the schedule exception to update.' })
-  @ApiResponse({ status: 200, description: 'Schedule exceptions updated successfully.', type: PaginationScheduleExceptionResponseDto })
+  @ApiResponse({ status: 200, description: 'Schedule exceptions updated successfully.', type: ScheduleExceptionResponseDto })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
@@ -126,7 +126,7 @@ export class ScheduleExceptionsController {
   @Auth(UserRole.SPECIALIST)
   @ApiParam({ name: 'id', description: 'Id of the schedule exception to update status.' })
   @ApiResponse({ status: 200, description: 'Schedule exceptions updated successfully for the authenticated specialist.', 
-                 type: PaginationScheduleExceptionResponseDto })
+                 type: ScheduleExceptionResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Schedule exception not found.' })
@@ -141,7 +141,7 @@ export class ScheduleExceptionsController {
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'specialistId', description: 'Id of the specialist to update status of a schedule exception.' })
   @ApiParam({ name: 'id', description: 'Id of the schedule exception to update.' })
-  @ApiResponse({ status: 200, description: 'Status of the schedule exception updated successfully.', type: PaginationScheduleExceptionResponseDto })
+  @ApiResponse({ status: 200, description: 'Status of the schedule exception updated successfully.', type: ScheduleExceptionResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Specialist or schedule exception not found.' })

@@ -13,7 +13,7 @@ export class CreateScheduleDto {
 
   @ApiProperty({
     example: '08:00',
-    description: 'Start time of the schedule (HH:mm:ss).',
+    description: 'Start time of the schedule (HH:mm).',
     format: 'time',
   })
   @IsString()
@@ -24,7 +24,7 @@ export class CreateScheduleDto {
 
   @ApiProperty({
     example: '17:00',
-    description: 'End time of the schedule (HH:mm:ss).',
+    description: 'End time of the schedule (HH:mm).',
     format: 'time',
   })
   @IsString()

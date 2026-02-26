@@ -10,6 +10,7 @@ import { User } from 'src/users/entities/user.entity';
 import { CreateScheduleExceptionDto, PaginationScheduleExceptionResponseDto, ScheduleExceptionResponseDto, UpdateScheduleExceptionDto } from './dto';
 import { ScheduleException } from './entities/schedule-exception.entity';
 
+// TODO - Lógica que maneje el solapamiento
 @Injectable()
 export class ScheduleExceptionsService {
   private readonly dbException = new DbException('ScheduleExceptionsService');
@@ -165,7 +166,7 @@ export class ScheduleExceptionsService {
     const today = this.getToday();
     const scheduleExceptionDate = createScheduleExceptionDto.date;
 
-    if(new Date(scheduleExceptionDate) <= new Date(today))
+    if(scheduleExceptionDate <= today)
       throw new BadRequestException('Date must be greater than today');
     
     if(!this.validateTimes(createScheduleExceptionDto))
@@ -183,7 +184,7 @@ export class ScheduleExceptionsService {
   private validateTimes(createScheduleExceptionDto: CreateScheduleExceptionDto) {
     const startTime = createScheduleExceptionDto.startTime;
     const endTime = createScheduleExceptionDto.endTime;
-    return (!startTime && !endTime)? true: (!startTime || !endTime)? false: true;
+    return !!startTime === !!endTime;
   }
   
   private getTimeToSecond(hourString: string) {
@@ -193,16 +194,9 @@ export class ScheduleExceptionsService {
 
   private getToday() {
     const today = new Date();
-    let day = String(today.getDate());
-    let month = String(today.getMonth() + 1);
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
     const year = String(today.getFullYear());
-
-    if(today.getDate() < 10)
-      day = day.padStart(2, '0');
-
-    if(today.getMonth() + 1 < 10)
-      month = month.padStart(2, '0');
-
     return `${year}-${month}-${day}`;
   }
 }

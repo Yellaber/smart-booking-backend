@@ -130,6 +130,6 @@ export class SchedulesService {
 
   private getTimeToSecond(hourString: string) {
     const hourArray = hourString.split(':').map(Number);
-    return hourArray[0] * 3600 + hourArray[1] * 60 + hourArray[2];
+    return hourArray[0] * 3600 + hourArray[1] * 60;
   }
 }

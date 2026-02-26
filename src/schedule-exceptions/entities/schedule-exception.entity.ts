@@ -1,9 +1,8 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
 import { TypeScheduleException } from '../interfaces/type-schedule-exception.enum';
 
 @Entity('schedule_exceptions')
-@Unique('UQ_specialist_date', ['specialist', 'date'])
 export class ScheduleException {    
     @PrimaryGeneratedColumn('uuid')
     id: string;
