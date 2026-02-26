@@ -12,24 +12,24 @@ export class CreateScheduleDto {
   dayOfWeek: DayOfWeek;
 
   @ApiProperty({
-    example: '08:00:00',
-    description: 'Start time of the schedule (HH:mm:ss).',
+    example: '08:00',
+    description: 'Start time of the schedule (HH:mm).',
     format: 'time',
   })
   @IsString()
-  @Matches(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/, {
-    message: 'startTime must be in HH:mm:ss format',
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    message: 'startTime must be in HH:mm format',
   })
   startTime: string;
 
   @ApiProperty({
-    example: '17:00:00',
-    description: 'End time of the schedule (HH:mm:ss).',
+    example: '17:00',
+    description: 'End time of the schedule (HH:mm).',
     format: 'time',
   })
   @IsString()
-  @Matches(/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/, {
-    message: 'endTime must be in HH:mm:ss format',
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    message: 'endTime must be in HH:mm format',
   })
   endTime: string;
 }

@@ -1,6 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { Schedule } from 'src/schedules/entities/schedule.entity';
+import { ScheduleException } from 'src/schedule-exceptions/entities/schedule-exception.entity';
 import { User } from 'src/users/entities/user.entity';
 
 @Entity('specialists')
@@ -21,4 +22,7 @@ export class Specialist {
 
     @OneToMany(() => Schedule, (schedule) => schedule.specialist)
     schedules: Schedule[];
+
+    @OneToMany(() => ScheduleException, (scheduleException) => scheduleException.specialist)
+    scheduleExceptions: ScheduleException[];
 }

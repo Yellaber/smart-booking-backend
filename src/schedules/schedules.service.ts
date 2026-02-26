@@ -4,16 +4,11 @@ import { Repository } from 'typeorm';
 import { UserRole } from 'src/common/enums';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { DbException } from 'src/common/helpers/db-exception.helper';
+import { ScheduleQuery } from 'src/common/helpers/schedule-query.helper';
 import { SpecialistsService } from 'src/specialists/specialists.service';
 import { User } from 'src/users/entities/user.entity';
 import { CreateScheduleDto, PaginationScheduleResponseDto, ScheduleResponseDto, UpdateScheduleDto } from './dto';
 import { Schedule } from './entities/schedule.entity';
-
-interface ScheduleQuery {
-  id?: string;
-  specialist: { id: string };
-  isActive?: boolean;
-}
 
 @Injectable()
 export class SchedulesService {
@@ -26,12 +21,8 @@ export class SchedulesService {
   ) {}
 
   async create(specialistId: string, createScheduleDto: CreateScheduleDto) {
-    const startTimeSchedule = this.getTimeToSecond(createScheduleDto.startTime);
-    const endTimeSchedule = this.getTimeToSecond(createScheduleDto.endTime);
-
-    if(startTimeSchedule >= endTimeSchedule)
-      throw new ForbiddenException('Start time must be before end time');
-
+    const { startTime, endTime } = createScheduleDto;
+    this.validateTimes(startTime, endTime);
     const specialist = await this.specialistsService.findOneById(specialistId);
 
     try {
@@ -51,7 +42,7 @@ export class SchedulesService {
       throw new ForbiddenException('User does not have permission to access this resource');
 
     await this.specialistsService.findOneById(specialistId);
-    const where = this.getScheduleQuery(specialistId, authenticatedUser);
+    const where = ScheduleQuery.get(specialistId, authenticatedUser);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ schedules, total ] = await this.scheduleRepository.findAndCount({
       where,
@@ -84,11 +75,7 @@ export class SchedulesService {
     const schedule = await this.findOne(specialistId, scheduleId, authenticatedUser);
     const scheduleUpdated = this.scheduleRepository.merge(schedule, updateScheduleDto);
     const { startTime, endTime } = scheduleUpdated;
-    const startTimeSchedule = this.getTimeToSecond(startTime);
-    const endTimeSchedule = this.getTimeToSecond(endTime);
-    
-    if(startTimeSchedule >= endTimeSchedule)
-      throw new BadRequestException('Start time must be before end time');
+    this.validateTimes(startTime, endTime);
 
     try {
       await this.scheduleRepository.save(scheduleUpdated);
@@ -111,7 +98,7 @@ export class SchedulesService {
 
     await this.specialistsService.findOneById(specialistId);
 
-    const where = this.getScheduleQuery(specialistId, authenticatedUser, scheduleId);    
+    const where = ScheduleQuery.get(specialistId, authenticatedUser, scheduleId);    
     const schedule = await this.scheduleRepository.findOne({
       where,
       relations: { specialist: true }
@@ -121,16 +108,6 @@ export class SchedulesService {
       throw new NotFoundException(`Schedule with '${ scheduleId }' not found`);
 
     return schedule;
-  }
-
-  private getScheduleQuery(specialistId: string, authenticatedUser: User, scheduleId?: string) {
-    let query: ScheduleQuery = { specialist: { id: specialistId } };
-    
-    if(scheduleId)
-      query = { id: scheduleId, ...query };
-
-    return (authenticatedUser.roles.includes(UserRole.ADMIN) || authenticatedUser.roles.includes(UserRole.SUPER_USER))?
-      query: { ...query, isActive: true }
   }
 
   private getScheduleResponse(schedule: Schedule): ScheduleResponseDto {
@@ -143,8 +120,16 @@ export class SchedulesService {
     return { total, schedules: schedulesResponse };
   }
 
+  private validateTimes(startTime: string, endTime: string) {
+    const startTimeSchedule = this.getTimeToSecond(startTime);
+    const endTimeSchedule = this.getTimeToSecond(endTime);
+    
+    if(startTimeSchedule >= endTimeSchedule)
+      throw new BadRequestException('Start time must be before end time');
+  }
+
   private getTimeToSecond(hourString: string) {
     const hourArray = hourString.split(':').map(Number);
-    return hourArray[0] * 3600 + hourArray[1] * 60 + hourArray[2];
+    return hourArray[0] * 3600 + hourArray[1] * 60;
   }
 }
