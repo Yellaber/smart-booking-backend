@@ -17,6 +17,7 @@ export class SchedulesController {
   @ApiResponse({ status: 201, description: 'Schedule created successfully.', type: ScheduleResponseDto })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Specialist not found.' })
   create(
     @Param('specialistId', ParseUUIDPipe) specialistId: string,
@@ -32,7 +33,6 @@ export class SchedulesController {
   @ApiResponse({ status: 200, description: 'Schedules retrieved successfully for the authenticated specialist.', type: PaginationScheduleResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  @ApiResponse({ status: 404, description: 'Not found. Specialist not found.' })
   findAllMySchedules(
     @Query() paginationDto: PaginationDto,
     @GetUser() authenticatedUser: User
