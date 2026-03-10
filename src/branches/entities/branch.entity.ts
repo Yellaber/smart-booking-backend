@@ -1,5 +1,6 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { Company } from 'src/companies/entities/company.entity';
+import { Service } from 'src/services/entities/service.entity';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
 
 @Entity({ name: 'branches' })
@@ -34,6 +35,9 @@ export class Branch {
 
     @OneToMany(() => Specialist, (specialist) => specialist.branch)
     specialists: Specialist[];
+
+    @OneToMany(() => Service, (service) => service.branch)
+    services: Service[];
 
     @BeforeInsert()
     @BeforeUpdate()

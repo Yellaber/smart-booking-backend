@@ -10,6 +10,7 @@ import { SchedulesModule } from './schedules/schedules.module';
 import { SetupModule } from './setup/setup.module';
 import { SpecialistsModule } from './specialists/specialists.module';
 import { ScheduleExceptionsModule } from './schedule-exceptions/schedule-exceptions.module';
+import { ServicesModule } from './services/services.module';
 
 @Module({
   imports: [
@@ -32,7 +33,8 @@ import { ScheduleExceptionsModule } from './schedule-exceptions/schedule-excepti
     SchedulesModule,
     SetupModule,
     SpecialistsModule,
-    ScheduleExceptionsModule
+    ScheduleExceptionsModule,
+    ServicesModule
   ]
 })
 export class AppModule {}
