@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Branch } from 'src/branches/entities/branch.entity';
@@ -6,7 +6,6 @@ import { BranchesService } from 'src/branches/branches.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
 import { DbException } from 'src/common/helpers';
-import { Company } from 'src/companies/entities/company.entity';
 import { User } from 'src/users/entities/user.entity';
 import { CreateServiceDto, PaginationServiceResponseDto, ServiceResponseDto, UpdateServiceDto } from './dto';
 import { Service } from './entities/service.entity';
@@ -24,7 +23,6 @@ export class ServicesService {
 
   async create(branchId: string, createServiceDto: CreateServiceDto, user: User) {
     const { company } = user;
-    this.validatePermission(company, user);
     const branch = await this.branchesService.findOne(company.id, branchId, user);
     
     try {
@@ -41,7 +39,6 @@ export class ServicesService {
 
   async findAll(branchId: string, paginationDto: PaginationDto, user: User) {
     const { company } = user;
-    this.validatePermission(company, user);
     const branch = await this.branchesService.findOne(company.id, branchId, user);
     const serviceQuery = this.getServiceQuery(branch, user);
     const { limit = 10, offset = 0 } = paginationDto;
@@ -88,7 +85,6 @@ export class ServicesService {
 
   async findOne(branchId: string, id: string, user: User) {
     const { company } = user;
-    this.validatePermission(company, user);
     const branch = await this.branchesService.findOne(company.id, branchId, user);
     const serviceQuery = this.getServiceQuery(branch, user, id);
     const service = await this.serviceRepository.findOne({
@@ -110,15 +106,6 @@ export class ServicesService {
   
     return (authenticatedUser.roles.includes(UserRole.ADMIN) || authenticatedUser.roles.includes(UserRole.SUPER_USER))? 
       query: { ...query, isActive: true };
-  }
-
-  private validatePermission(company: Company, user: User) {
-    if(user.roles.includes(UserRole.SUPER_USER)) return;
-    
-    const { company: companyUser } = user;
-        
-    if(company.id !== companyUser.id)
-      throw new ForbiddenException('User does not have permission to access this resource');
   }
 
   private getServiceResponse(service: Service): ServiceResponseDto {
