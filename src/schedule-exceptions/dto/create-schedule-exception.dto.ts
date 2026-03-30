@@ -18,27 +18,23 @@ export class CreateScheduleExceptionDto {
         example: '08:00',
         description: 'Start time of the schedule exception (HH:mm).',
         format: 'time',
-        required: false
     })
     @IsString()
     @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
         message: 'startTime must be in HH:mm format'
     })
-    @IsOptional()
-    startTime?: string;
+    startTime: string;
 
     @ApiProperty({
         example: '17:00',
         description: 'End time of the schedule exception (HH:mm).',
         format: 'time',
-        required: false
     })
     @IsString()
     @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
         message: 'endTime must be in HH:mm format'
     })
-    @IsOptional()
-    endTime?: string;
+    endTime: string;
 
     @ApiProperty({
         example: 'extra',
@@ -52,9 +48,7 @@ export class CreateScheduleExceptionDto {
         example:'This is the reason for the schedule exception.',
         description: 'Reason for the schedule exception.',
         format: 'string',
-        required: false
     })
     @IsString()
-    @IsOptional()
-    reason?: string;
+    reason: string;
 }

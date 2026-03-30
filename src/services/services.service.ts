@@ -76,9 +76,6 @@ export class ServicesService {
 
   async remove(branchId: string, id: string, user: User) {
     const serviceFound = await this.findOne(branchId, id, user);
-    // TODO - Eliminar el servicio si no se encuentra en bookingService.
-    // await this.serviceRepository.remove(serviceFound);
-    // TODO - Marcar el servicio como inactivo si no se encuentra en bookingService.
     serviceFound.isActive = false;
     await this.serviceRepository.save(serviceFound);
   }

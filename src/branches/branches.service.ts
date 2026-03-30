@@ -88,6 +88,20 @@ export class BranchesService {
     return branch;
   }
 
+  async findOneById(branchId: string, user: User) {
+    const query = { id: branchId, isActive: true };
+    const branch = await this.branchRepository.findOne({
+      where: query,
+      relations: { company: true }
+    });
+
+    if(!branch)
+      throw new NotFoundException(`Branch with '${ branchId }' not found`);
+
+    this.validatePermission(branch.company, user);
+    return branch;
+  }
+
   private validatePermission(company: Company, user: User) {
     if(user.roles.includes(UserRole.SUPER_USER)) return;
   

@@ -1,4 +1,5 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Booking } from 'src/bookings/entities/booking.entity';
 import { UserRole } from 'src/common/enums/user-role.enum';
 import { IdType } from 'src/common/enums';
 import { Company } from 'src/companies/entities/company.entity';
@@ -49,6 +50,9 @@ export class User {
 
     @ManyToOne(() => Company, (company) => company.users)
     company: Company;
+
+    @OneToMany(() => Booking, (booking) => booking.user)
+    bookings: Booking[];
 
     @BeforeInsert()
     @BeforeUpdate()

@@ -2,6 +2,7 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, Prima
 import { Company } from 'src/companies/entities/company.entity';
 import { Service } from 'src/services/entities/service.entity';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
+import { Booking } from 'src/bookings/entities/booking.entity';
 
 @Entity({ name: 'branches' })
 @Unique('UQ_company_branch_name', [ 'company', 'name' ])
@@ -38,6 +39,9 @@ export class Branch {
 
     @OneToMany(() => Service, (service) => service.branch)
     services: Service[];
+
+    @OneToMany(() => Booking, (booking) => booking.branch)
+    bookings: Booking[];
 
     @BeforeInsert()
     @BeforeUpdate()

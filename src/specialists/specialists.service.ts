@@ -1,11 +1,12 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { BranchesService } from 'src/branches/branches.service';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
 import { DbException } from 'src/common/helpers/db-exception.helper';
+import { Service } from 'src/services/entities/service.entity';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { CreateSpecialistDto, DataUserResponseDto, PaginationSpecialistResponseDto, SpecialistResponseDto } from './dto';
@@ -20,14 +21,17 @@ export class SpecialistsService {
     private readonly branchesService: BranchesService,
     private readonly usersService: UsersService,
     @InjectRepository(Specialist)
-    private readonly specialistRepository: Repository<Specialist>
+    private readonly specialistRepository: Repository<Specialist>,
+    @InjectRepository(Service)
+    private readonly serviceRepository: Repository<Service>
   ) {}
 
   async create(branchTerm: string, createSpecialistDto: CreateSpecialistDto, authenticatedUser: User) {
     const { slug: companySlug } = authenticatedUser.company;
-    const { userId } = createSpecialistDto;
+    const { userId, servicesIds } = createSpecialistDto;
     const branch = await this.branchesService.findOne(companySlug, branchTerm, authenticatedUser);
     const userFound = await this.usersService.findOne(companySlug, userId, authenticatedUser);
+    const services = await this.findServicesInBranch(servicesIds, branch.id);
 
     if(!userFound.roles.includes(UserRole.SPECIALIST))
       throw new BadRequestException('User is not a specialist');
@@ -35,7 +39,8 @@ export class SpecialistsService {
     try {
       const specialist = this.specialistRepository.create({
         branch,
-        user: userFound
+        user: userFound,
+        services
       });
       await this.specialistRepository.save(specialist);
       return this.getSpecialistResponse(specialist);
@@ -111,6 +116,15 @@ export class SpecialistsService {
       throw new NotFoundException(`Specialist with '${ specialistId }' not found in branch '${ branchTerm }'`);
 
     return specialist;
+  }
+
+  private async findServicesInBranch(servicesIds: string[], branchId: string) {
+    const services = await this.serviceRepository.findBy({ id: In(servicesIds), branch: { id: branchId }, isActive: true });
+  
+    if(services.length !== servicesIds.length)
+      throw new NotFoundException(`One or more services not found in branch '${ branchId }'`);
+  
+    return services;
   }
 
   private getSpecialistQuery(branch: Branch, authenticatedUser: User, specialistId?: string) {

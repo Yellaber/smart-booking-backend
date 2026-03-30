@@ -2,15 +2,16 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { BookingsModule } from './bookings/bookings.module';
 import { BranchesModule } from './branches/branches.module';
 import { CommonModule } from './common/common.module';
 import { CompaniesModule } from './companies/companies.module';
-import { UsersModule } from './users/users.module';
+import { ScheduleExceptionsModule } from './schedule-exceptions/schedule-exceptions.module';
 import { SchedulesModule } from './schedules/schedules.module';
+import { ServicesModule } from './services/services.module';
 import { SetupModule } from './setup/setup.module';
 import { SpecialistsModule } from './specialists/specialists.module';
-import { ScheduleExceptionsModule } from './schedule-exceptions/schedule-exceptions.module';
-import { ServicesModule } from './services/services.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -26,15 +27,16 @@ import { ServicesModule } from './services/services.module';
       synchronize: true,
     }),
     AuthModule,
+    BookingsModule,
     BranchesModule,
     CommonModule,
     CompaniesModule,
-    UsersModule,
+    ScheduleExceptionsModule,
     SchedulesModule,
+    ServicesModule,
     SetupModule,
     SpecialistsModule,
-    ScheduleExceptionsModule,
-    ServicesModule
+    UsersModule,
   ]
 })
 export class AppModule {}
