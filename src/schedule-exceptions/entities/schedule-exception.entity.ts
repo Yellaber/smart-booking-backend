@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
 import { TypeScheduleException } from '../interfaces/type-schedule-exception.enum';
 
@@ -10,16 +10,16 @@ export class ScheduleException {
     @Column('date')
     date: string;
 
-    @Column('time', { nullable: true })
+    @Column('time')
     startTime: string;
 
-    @Column('time', { nullable: true })
+    @Column('time')
     endTime: string;
 
     @Column({ type: 'enum', enum: TypeScheduleException })
     type: TypeScheduleException;
 
-    @Column('text', { nullable: true })
+    @Column('text')
     reason: string;
 
     @Column('boolean', { default: true })
@@ -27,4 +27,9 @@ export class ScheduleException {
 
     @ManyToOne(() => Specialist, (specialist) => specialist.scheduleExceptions)
     specialist: Specialist;
+
+    @BeforeInsert()
+    prepareNameBeforeSave() {
+        this.reason = this.reason.toLowerCase().trim();
+    }
 }

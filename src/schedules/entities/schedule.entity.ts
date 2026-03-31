@@ -1,9 +1,8 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
 import { DayOfWeek } from '../interfaces/day-of-week.enum';
 
 @Entity('schedules')
-@Unique('UQ_schedule_specialist', ['specialist', 'dayOfWeek', 'startTime', 'endTime'])
 export class Schedule {
     @PrimaryGeneratedColumn('uuid')
     id: string;
