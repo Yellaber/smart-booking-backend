@@ -44,7 +44,7 @@ export class UserResponseDto {
         example: '123 Main St, Springfield',
         description: 'Address of the profile owner.',
         format: 'string',
-        required: false
+        nullable: true
     })
     address?: string;
             
@@ -59,7 +59,7 @@ export class UserResponseDto {
         example: '1234567890',
         description: 'Phone number of the profile owner.',
         format: 'string',
-        required: false
+        nullable: true
     })
     phone?: string;
         
@@ -67,7 +67,7 @@ export class UserResponseDto {
         example: 'cartagena',
         description: 'City where the profile owner resides.',
         format: 'string',
-        required: false
+        nullable: true
     })
     city?: string;
         
@@ -75,7 +75,7 @@ export class UserResponseDto {
         example: 'https://example.com/images/profile.jpg',
         description: 'URL of the profile image.',
         format: 'string',
-        required: false
+        nullable: true
     })
     image?: string;
     

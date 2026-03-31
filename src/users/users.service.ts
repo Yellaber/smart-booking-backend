@@ -8,8 +8,8 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
 import { DbException } from 'src/common/helpers/db-exception.helper';
 import { Company } from 'src/companies/entities/company.entity';
-import { User } from './entities/user.entity';
 import { PaginationUserResponseDto, UpdateUserDto, UserResponseDto } from './dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -22,12 +22,12 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async findAll(companySlug: string, paginationDto: PaginationDto, user: User) {
-    const companyFound = await this.companiesService.findOne(companySlug);
-    this.validatePermission(companyFound, user);
+  async findAll(companySlug: string, paginationDto: PaginationDto, authenticatedUser: User) {
+    const company = await this.companiesService.findOne(companySlug);
+    this.validatePermission(company, authenticatedUser, '', [ UserRole.ADMIN ]);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ users, total ] = await this.userRepository.findAndCount({
-      where: { company: { id: companyFound.id }, isActive: true },
+      where: { company: { id: company.id }, isActive: true },
       take: limit,
       skip: offset
     });
@@ -35,13 +35,18 @@ export class UsersService {
     return this.getPaginationUserResponseDto(total, users);
   }
 
-  async findOneUserResponse(companySlug: string, id: string, user: User) {
-    const userFound = await this.findOne(companySlug, id, user);
-    return this.getUserResponseDto(userFound);
+  async findOneUserResponse(companySlug: string, userId: string, authenticatedUser: User) {
+    const allowedRoles = [ UserRole.ADMIN, UserRole.SPECIALIST, UserRole.RECEPTIONIST ];
+    const company = await this.companiesService.findOne(companySlug);
+    this.validatePermission(company, authenticatedUser, userId, allowedRoles);
+    const user = await this.findOne(company.id, userId);
+    return this.getUserResponseDto(user);
   }
 
-  async update(companySlug: string, id: string, updateUserDto: UpdateUserDto, user: User) {
-    const userFound = await this.findOne(companySlug, id, user);
+  async update(companySlug: string, userId: string, updateUserDto: UpdateUserDto, authenticatedUser: User) {
+    const company = await this.companiesService.findOne(companySlug);
+    this.validatePermission(company, authenticatedUser, userId, [ UserRole.ADMIN ]);
+    const user = await this.findOne(company.id, userId);
 
     if(updateUserDto.password) {
       const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
@@ -49,7 +54,7 @@ export class UsersService {
       updateUserDto.password = passwordBcrypt;
     }
 
-    const userToUpdate = this.userRepository.merge(userFound, updateUserDto);
+    const userToUpdate = this.userRepository.merge(user, updateUserDto);
 
     try {
       await this.userRepository.save(userToUpdate);
@@ -59,32 +64,36 @@ export class UsersService {
     }
   }
 
-  async remove(companySlug: string, id: string, user: User) {
-    const userFound = await this.findOne(companySlug, id, user);
+  async remove(companySlug: string, userId: string, authenticatedUser: User) {
+    const company = await this.companiesService.findOne(companySlug);
+    this.validatePermission(company, authenticatedUser, userId, [ UserRole.ADMIN ]);
+    const userFound = await this.findOne(company.id, userId);
     userFound.isActive = false;
     await this.userRepository.save(userFound);
   }
 
-  async findOne(companySlug: string, id: string, user: User) {
-    const companyFound = await this.companiesService.findOne(companySlug);
-    this.validatePermission(companyFound, user, id);
-    const company = { id: companyFound.id };
-    const userFound = await this.userRepository.findOne({ where: { id, company, isActive: true } });
+  async findOne(companyId: string, userId: string) {
+    const company = { id: companyId };
+    const user = await this.userRepository.findOne({ where: { id: userId, company, isActive: true } });
     
-    if(!userFound)
-      throw new NotFoundException(`User with '${ id }' not found`);
+    if(!user)
+      throw new NotFoundException(`User with '${ userId }' not found`);
 
-    return userFound;
+    return user;
   }
 
-  private validatePermission(company: Company, user: User, id: string = '') {
-    if(user.roles.includes(UserRole.SUPER_USER))
-      return;
-  
-    const { company: companyUser, id: userId } = user;
+  private validatePermission(company: Company, authenticatedUser: User, userId: string, allowedRoles: UserRole[]) {
+    if(authenticatedUser.roles.includes(UserRole.SUPER_USER)) return;
 
-    if(company.id === companyUser.id && (user.roles.includes(UserRole.ADMIN) || (userId === id)))
-      return;
+    const { id: companyId } = company;
+    const { id: companyIdAuthenticatedUser } = authenticatedUser.company;
+    const isSameCompany = companyId === companyIdAuthenticatedUser;
+    const isSameUser = authenticatedUser.id === userId;
+    const hasAllowedRole = authenticatedUser.roles.some(role => allowedRoles.includes(role));
+
+    if(isSameCompany && hasAllowedRole) return;
+
+    if(isSameCompany && isSameUser) return;
 
     throw new ForbiddenException('User does not have permission to access this resource');
   }
