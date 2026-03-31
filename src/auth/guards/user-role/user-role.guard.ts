@@ -25,6 +25,6 @@ export class UserRoleGuard implements CanActivate {
         return true;
     }
 
-    throw new ForbiddenException(`User does not have any of the valid roles: ${ validRoles }`);
+    throw new ForbiddenException(`User does not have permission to access this resource. Required roles: ${validRoles}`);
   }
 }
