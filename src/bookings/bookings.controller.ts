@@ -171,7 +171,7 @@ export class BookingsController {
   }
 
   @Get('bookings/:bookingId')
-  @Auth()
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiParam({ name: 'bookingId', description: 'ID of the booking to retrieve (UUID).' })
   @ApiResponse({ status: 200, description: 'Booking retrieved successfully.', type: BookingResponseDto })
@@ -187,7 +187,7 @@ export class BookingsController {
   }
 
   @Patch('bookings/:bookingId/cancel')
-  @Auth(UserRole.CUSTOMER, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiParam({ name: 'bookingId', description: 'ID of the booking to cancel (UUID).' })
   @ApiResponse({ status: 200, description: 'Booking canceled successfully.', type: BookingResponseDto })
@@ -203,7 +203,7 @@ export class BookingsController {
   }
 
   @Patch('bookings/:bookingId/complete')
-  @Auth(UserRole.CUSTOMER, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiParam({ name: 'bookingId', description: 'ID of the booking to complete (UUID).' })
   @ApiResponse({ status: 200, description: 'Booking completed successfully.', type: BookingResponseDto })

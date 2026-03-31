@@ -133,10 +133,7 @@ export class BookingsService {
   }
 
   async changeStatus(branchId: string, bookingId: string, status: AppointmentStatus, authenticatedUser: User) {
-    await this.branchesService.findOneById(branchId, authenticatedUser);
     const booking = await this.findOneById(branchId, bookingId, authenticatedUser);
-    const { id: userId } = booking.user;
-    this.isSpecialistACustomer(userId, authenticatedUser);
     booking.status = status;
     await this.bookingRepository.save(booking);
     return this.getBookingResponse(booking);
@@ -168,9 +165,10 @@ export class BookingsService {
   }
 
   private async findServicesInBranch(servicesIds: string[], branchId: string) {
-    const services = await this.serviceRepository.findBy({ id: In(servicesIds), branch: { id: branchId }, isActive: true });
+    const uniqueServiceIds = [ ...new Set(servicesIds) ];
+    const services = await this.serviceRepository.findBy({ id: In(uniqueServiceIds), branch: { id: branchId }, isActive: true });
 
-    if(services.length !== servicesIds.length)
+    if(services.length !== uniqueServiceIds.length)
       throw new NotFoundException(`One or more services not found in branch '${ branchId }'`);
 
     return services;
@@ -207,15 +205,16 @@ export class BookingsService {
   }
 
   private async validateSpecialistServices(specialistId: string, servicesIds: string[]) {
+    const uniqueServiceIds = [ ...new Set(servicesIds) ];
     const countSpecialistServices = await this.dataSource
       .createQueryBuilder()
       .select('ss.servicesId', 'servicesId')
       .from('specialist_services', 'ss')
       .where('ss.specialistsId = :specialistId', { specialistId })
-      .andWhere('ss.servicesId IN (:...servicesIds)', { servicesIds })
+      .andWhere('ss.servicesId IN (:...servicesIds)', { uniqueServiceIds })
       .getCount();
     
-    if(countSpecialistServices !== servicesIds.length)
+    if(countSpecialistServices !== uniqueServiceIds.length)
       throw new BadRequestException(`One or more services are not assigned to the specialist with '${ specialistId }'`);
   }
 
@@ -270,11 +269,6 @@ export class BookingsService {
     return !!scheduleExceptions;
   }
 
-  private isSpecialistACustomer(userId: string, authenticatedUser: User) {
-    if(authenticatedUser.roles.includes(UserRole.SPECIALIST) && userId !== authenticatedUser.id)
-      throw new ForbiddenException('User does not have permission to access this resource');
-  }
-
   private calculateEndTime(startTime: string, services: Service[]) {
     const totalDuration = services.reduce((total, service) => total + service.durationMinutes, 0);
     const [ hours, minutes ] = startTime.split(':').map(Number);
@@ -310,9 +304,10 @@ export class BookingsService {
   }
 
   private getDayOfWeek(date: string) {
-    const daysOfWeek = [ DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, 
-      DayOfWeek.SATURDAY, DayOfWeek.SUNDAY ];
-    const numberDayOfWeek = new Date(date).getDay();
+    const daysOfWeek = [ DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, 
+      DayOfWeek.SATURDAY ];
+    const [ year, month, day ] = date.split('-').map(Number);
+    const numberDayOfWeek = new Date(year, month - 1, day).getDay();
     return daysOfWeek[ numberDayOfWeek ];
   }
 }

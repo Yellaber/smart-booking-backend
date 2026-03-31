@@ -41,8 +41,7 @@ export class CreateBookingDto {
     @ApiProperty({
         example: '08:00',
         description: 'Start time of the booking (HH:mm).',
-        format: 'time',
-        required: false
+        format: 'time'
     })
     @IsString()
     @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
