@@ -6,7 +6,7 @@ export class CreateScheduleDto {
   @ApiProperty({
     example: 'monday',
     description: 'Day of the week for the schedule.',
-    enum: DayOfWeek,
+    enum: DayOfWeek
   })
   @IsEnum(DayOfWeek)
   dayOfWeek: DayOfWeek;
@@ -14,22 +14,22 @@ export class CreateScheduleDto {
   @ApiProperty({
     example: '08:00',
     description: 'Start time of the schedule (HH:mm).',
-    format: 'time',
+    format: 'time'
   })
   @IsString()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'startTime must be in HH:mm format',
+    message: 'startTime must be in HH:mm format'
   })
   startTime: string;
 
   @ApiProperty({
     example: '17:00',
     description: 'End time of the schedule (HH:mm).',
-    format: 'time',
+    format: 'time'
   })
   @IsString()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'endTime must be in HH:mm format',
+    message: 'endTime must be in HH:mm format'
   })
   endTime: string;
 }
