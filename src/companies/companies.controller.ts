@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Patch, Param, ParseUUIDPipe, Query, Delete } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Auth, GetUser } from 'src/auth/decorators';
-import { UserRole } from 'src/common/enums';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { UserRole } from 'src/common/enums';
 import { User } from 'src/users/entities/user.entity';
 import { CompaniesService } from './companies.service';
 import { CompanyResponseDto, CreateCompanyDto, PaginationCompanyResponseDto, UpdateCompanyDto } from './dto';
@@ -32,43 +32,43 @@ export class CompaniesController {
     return this.companiesService.findAll(paginationDto);
   }
   
-  @Get(':term')
-  @Auth()
-  @ApiParam({ name: 'term', description: 'Slug or id of the company to retrieve.' })
+  @Get(':companyTerm')
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @ApiParam({ name: 'companyTerm', description: 'Slug or ID of the company to retrieve.' })
   @ApiResponse({ status: 200, description: 'Company retrieved successfully.', type: CompanyResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Company not found.' })
   findOne(
-    @Param('term') term: string,
-    @GetUser() user: User
+    @Param('companyTerm') companyTerm: string,
+    @GetUser() authenticatedUser: User
   ) {
-    return this.companiesService.findOneCompanyResponse(term, user);
+    return this.companiesService.findOneCompanyResponse(companyTerm, authenticatedUser);
   }
   
-  @Patch(':id')
+  @Patch(':companyId')
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
-  @ApiParam({ name: 'id', description: 'Id of the company to update.' })
+  @ApiParam({ name: 'companyId', description: 'ID of the company to update (UUID).' })
   @ApiResponse({ status: 200, description: 'Company updated successfully.', type: CompanyResponseDto })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Company not found.' })
   update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('companyId', ParseUUIDPipe) companyId: string,
     @Body() updateCompanyDto: UpdateCompanyDto,
-    @GetUser() user: User
+    @GetUser() authenticatedUser: User
   ) {
-    return this.companiesService.update(id, updateCompanyDto, user);
+    return this.companiesService.update(companyId, updateCompanyDto, authenticatedUser);
   }
 
-  @Delete(':id')
+  @Delete(':companyId')
   @Auth(UserRole.SUPER_USER)
-  @ApiParam({ name: 'id', description: 'Id of the company to remove.' })
+  @ApiParam({ name: 'companyId', description: 'ID of the company to remove (UUID).' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Company not found.' })
-  delete(@Param('id', ParseUUIDPipe) id: string) {
-    return this.companiesService.remove(id);
+  delete(@Param('companyId', ParseUUIDPipe) companyId: string) {
+    return this.companiesService.remove(companyId);
   }
 }

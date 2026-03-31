@@ -6,8 +6,8 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
 import { DbException } from 'src/common/helpers/db-exception.helper';
 import { User } from 'src/users/entities/user.entity';
-import { Company } from './entities/company.entity';
 import { CompanyResponseDto, CreateCompanyDto, PaginationCompanyResponseDto, UpdateCompanyDto } from './dto';
+import { Company } from './entities/company.entity';
 
 @Injectable()
 export class CompaniesService {
@@ -39,15 +39,15 @@ export class CompaniesService {
     return this.getPaginationCompanyResponse(total, companies);
   }
 
-  async findOneCompanyResponse(term: string, user: User) {
-    const company = await this.findOne(term);
-    this.validatePermission(company, user);
+  async findOneCompanyResponse(companyTerm: string, authenticatedUser: User) {
+    const company = await this.findOne(companyTerm);
+    this.validatePermission(company, authenticatedUser);
     return this.getCompanyResponseDto(company);
   }
 
-  async update(id: string, updateCompanyDto: UpdateCompanyDto, user: User) {
-    const companyFound = await this.findOne(id);
-    this.validatePermission(companyFound, user);
+  async update(companyId: string, updateCompanyDto: UpdateCompanyDto, authenticatedUser: User) {
+    const companyFound = await this.findOne(companyId);
+    this.validatePermission(companyFound, authenticatedUser);
     const company = this.companyRepository.merge(companyFound, updateCompanyDto);
 
     try {
@@ -58,18 +58,19 @@ export class CompaniesService {
     }
   }
 
-  async remove(id: string) {
-    const company = await this.findOne(id);
+  async remove(companyId: string) {
+    const company = await this.findOne(companyId);
     company.isActive = false;
     await this.companyRepository.save(company);
   }
 
-  async findOne(term: string) {
-    const query = isUUID(term)? { id: term, isActive: true }: { slug: term.toLowerCase(), isActive: true };
+  async findOne(companyTerm: string) {
+    const query = isUUID(companyTerm)? { id: companyTerm, isActive: true }: { slug: companyTerm.toLowerCase(), isActive: true };
     const company = await this.companyRepository.findOne({ where: query });
     
     if(!company)
-      throw new NotFoundException(`Company with '${ term }' not found`);
+      throw new NotFoundException(`Company with '${ companyTerm }' not found`);
+
     return company;
   }
 

@@ -4,7 +4,8 @@ import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 export class CreateCompanyDto {
   @ApiProperty({
     example: '12345678901',
-    description: 'The identification number of the company'
+    description: 'The identification number of the company',
+    format: 'string'
   })
   @IsString()
   @MinLength(1)
@@ -13,7 +14,8 @@ export class CreateCompanyDto {
 
   @ApiProperty({
     example: 'Company name',
-    description: 'The name of the company'
+    description: 'The name of the company',
+    format: 'string'
   })
   @IsString()
   @MinLength(1)
@@ -23,7 +25,8 @@ export class CreateCompanyDto {
   @ApiProperty({
     example: 'www.company.com',
     description: 'The website of the company',
-    nullable: true
+    format: 'string',
+    required: false
   })
   @IsString()
   @IsOptional()
@@ -34,7 +37,8 @@ export class CreateCompanyDto {
   @ApiProperty({
     example: 'https://www.company.com/logo.png',
     description: 'The logo of the company',
-    nullable: true
+    format: 'string',
+    required: false
   })
   @IsString()
   @IsOptional()
