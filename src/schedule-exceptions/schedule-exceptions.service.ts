@@ -19,10 +19,10 @@ export class ScheduleExceptionsService {
   constructor(
     @InjectRepository(Branch)
     private readonly branchRepository: Repository<Branch>,
+    private readonly dataSource: DataSource,
     @InjectRepository(ScheduleException)
     private readonly scheduleExceptionRepository: Repository<ScheduleException>,
-    private readonly specialistsService: SpecialistsService,
-    private readonly dataSource: DataSource
+    private readonly specialistsService: SpecialistsService
   ) {}
 
   async create(specialistId: string, createScheduleExceptionDto: CreateScheduleExceptionDto, authenticatedUser: User) {
