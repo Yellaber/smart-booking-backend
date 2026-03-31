@@ -1,8 +1,8 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { SetupService } from './setup.service';
 import { ApiResponse } from '@nestjs/swagger';
 import { RegisterUserDto } from 'src/users/dto';
 import { SetupResponseDto } from './dto/setup-response.dto';
+import { SetupService } from './setup.service';
 
 @Controller('setup')
 export class SetupController {
