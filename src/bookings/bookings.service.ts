@@ -22,6 +22,7 @@ export class BookingsService {
   
   constructor(
     private readonly branchesService: BranchesService,
+    private readonly dataSource: DataSource,
     @InjectRepository(Booking)
     private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(Service)
@@ -29,47 +30,17 @@ export class BookingsService {
     @InjectRepository(Specialist)
     private readonly specialistRepository: Repository<Specialist>,
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    private readonly dataSource: DataSource
+    private readonly userRepository: Repository<User>
   ) {}
 
   async create(branchId: string, createBookingDto: CreateBookingDto, authenticatedUser: User) {
+    const allowedRoles = [ UserRole.RECEPTIONIST, UserRole.ADMIN ];
     const { userId, specialistId, servicesIds, ...restBooking } = createBookingDto;
+    this.validatePermission(authenticatedUser, userId, allowedRoles);
     const branch = await this.branchesService.findOneById(branchId, authenticatedUser);
     const { id: companyId } = branch.company;
     const user = await this.findUserInCompany(userId, companyId);
     const specialist = await this.findSpecialistInBranch(specialistId, branchId);
-    const services = await this.findServicesInBranch(servicesIds, branchId);
-    await this.validateSpecialistServices(specialistId, servicesIds);
-    const endTime = this.calculateEndTime(restBooking.startTime, services);
-    await this.validateSpecialistSchedule(specialistId, restBooking.date, restBooking.startTime, endTime);
-    await this.validateSpecialistScheduleExceptionsBlock(specialistId, restBooking.date, restBooking.startTime, endTime);
-    await this.validateBookingTimeSlot(specialistId, restBooking.date, restBooking.startTime, endTime);
-
-    try {
-      const booking = this.bookingRepository.create({ ...restBooking, endTime, branch, user, specialist, services });
-      await this.bookingRepository.save(booking);
-      return this.getBookingResponse(booking);
-    } catch(error) {
-      return this.dbException.handle(error);
-    }
-  }
-
-  async createByMeCustomer(branchId: string, createBookingDto: CreateBookingDto, authenticatedUser: User) {
-    const { userId, specialistId, servicesIds, ...restBooking } = createBookingDto;
-    
-    if(userId !== authenticatedUser.id)
-      throw new ForbiddenException('User does not have permission to access this resource');
-
-    const branch = await this.branchesService.findOneById(branchId, authenticatedUser);
-    const { id: companyId } = branch.company;
-    const user = await this.findUserInCompany(userId, companyId);
-    const specialist = await this.findSpecialistInBranch(specialistId, branchId);    
-    const { id: specialistUserId } = specialist.user;
-
-    if(specialistUserId === authenticatedUser.id)
-      throw new BadRequestException('Specialist cannot book an appointment with himself');
-
     const services = await this.findServicesInBranch(servicesIds, branchId);
     await this.validateSpecialistServices(specialistId, servicesIds);
     const endTime = this.calculateEndTime(restBooking.startTime, services);
@@ -128,12 +99,18 @@ export class BookingsService {
   }
 
   async findOneBookingResponseById(branchId: string, bookingId: string, authenticatedUser: User) {
+    const allowedRoles = [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ];
     const booking = await this.findOneById(branchId, bookingId, authenticatedUser);
+    const { id: userId } = booking.user;
+    this.validatePermission(authenticatedUser, userId, allowedRoles);
     return this.getBookingResponse(booking);
   }
 
   async changeStatus(branchId: string, bookingId: string, status: AppointmentStatus, authenticatedUser: User) {
+    const allowedRoles = [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ];
     const booking = await this.findOneById(branchId, bookingId, authenticatedUser);
+    const { id: userId } = booking.user;
+    this.validatePermission(authenticatedUser, userId, allowedRoles);
     booking.status = status;
     await this.bookingRepository.save(booking);
     return this.getBookingResponse(booking);
@@ -267,6 +244,19 @@ export class BookingsService {
       .getOne();
 
     return !!scheduleExceptions;
+  }
+
+  private validatePermission(authenticatedUser: User, userId: string, allowedRoles: UserRole[]) {
+    if(authenticatedUser.roles.includes(UserRole.SUPER_USER)) return;
+  
+    const isSameUser = authenticatedUser.id === userId;
+    const hasAllowedRole = authenticatedUser.roles.some(role => allowedRoles.includes(role));
+  
+    if(hasAllowedRole) return;
+  
+    if(isSameUser) return;
+  
+    throw new ForbiddenException('User does not have permission to access this resource');
   }
 
   private calculateEndTime(startTime: string, services: Service[]) {
