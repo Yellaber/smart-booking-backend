@@ -6,6 +6,7 @@ import { AppointmentStatus, UserRole } from 'src/common/enums';
 import { User } from 'src/users/entities/user.entity';
 import { BookingsService } from './bookings.service';
 import { BookingResponseDto, CreateBookingDto, PaginationBookingResponseDto } from './dto';
+import { ParseBookingStatusPipe } from './pipes/parse-booking-status/parse-booking-status.pipe';
 
 @Controller('branches/:branchId')
 export class BookingsController {
@@ -56,7 +57,7 @@ export class BookingsController {
   @ApiResponse({ status: 404, description: 'Not found. Branch not found.' })
   findAllByBranchAndStatus(
     @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Param('status') status: AppointmentStatus,
+    @Param('status', ParseBookingStatusPipe) status: AppointmentStatus,
     @Query() paginationDto: PaginationDto,
     @GetUser() authenticatedUser: User
   ) {
@@ -92,7 +93,7 @@ export class BookingsController {
   @ApiResponse({ status: 404, description: 'Not found. Branch not found.' })
   findAllByMeCustomerAndStatus(
     @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Param('status') status: AppointmentStatus,
+    @Param('status', ParseBookingStatusPipe) status: AppointmentStatus,
     @Query() paginationDto: PaginationDto,
     @GetUser() authenticatedUser: User
   ) {
@@ -128,7 +129,7 @@ export class BookingsController {
   @ApiResponse({ status: 404, description: 'Not found. Branch not found.' })
   findAllByMeSpecialistAndStatus(
     @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Param('status') status: AppointmentStatus,
+    @Param('status', ParseBookingStatusPipe) status: AppointmentStatus,
     @Query() paginationDto: PaginationDto,
     @GetUser() authenticatedUser: User
   ) {
