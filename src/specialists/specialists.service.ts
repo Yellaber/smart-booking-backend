@@ -30,7 +30,7 @@ export class SpecialistsService {
     const { slug: companySlug } = authenticatedUser.company;
     const { userId, servicesIds } = createSpecialistDto;
     const branch = await this.branchesService.findOne(companySlug, branchId, authenticatedUser);
-    const user = await this.usersService.findOne(companySlug, userId, authenticatedUser);
+    const user = await this.usersService.findOne(companySlug, userId);
     const services = await this.findServicesInBranch(servicesIds, branch.id);
 
     if(!user.roles.includes(UserRole.SPECIALIST))

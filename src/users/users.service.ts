@@ -104,7 +104,7 @@ export class UsersService {
   }
 
   private getPaginationUserResponseDto(total: number, users: User[]): PaginationUserResponseDto {
-    const usersResponse = users.map(this.getUserResponseDto);
+    const usersResponse = users.map(user => this.getUserResponseDto(user));
     return { total, users: usersResponse };
   }
 }
