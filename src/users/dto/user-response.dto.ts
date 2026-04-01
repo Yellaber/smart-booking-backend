@@ -44,7 +44,7 @@ export class UserResponseDto {
         example: '123 Main St, Springfield',
         description: 'Address of the profile owner.',
         format: 'string',
-        required: false
+        nullable: true
     })
     address?: string;
             

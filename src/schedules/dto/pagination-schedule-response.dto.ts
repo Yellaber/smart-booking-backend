@@ -19,7 +19,7 @@ export class PaginationScheduleResponseDto {
             },
         ],
         type: [ ScheduleResponseDto ],
-        description: 'List of schedules.'
+        description: 'List of schedules'
     })
     schedules: ScheduleResponseDto[];
 }

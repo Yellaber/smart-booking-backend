@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from 'src/common/enums';
 import { UserResponseDto } from 'src/users/dto';
 
 export class RegisterResponseDto {
@@ -15,7 +14,7 @@ export class RegisterResponseDto {
             phone: '1234567890',
             city: 'cartagena',
             image: 'https://example.com/images/profile.jpg',
-            roles: [ UserRole.CUSTOMER, UserRole.SPECIALIST ]
+            roles: [ 'customer', 'specialist' ]
         },
         type: UserResponseDto,
         description: 'User registered successfully.'

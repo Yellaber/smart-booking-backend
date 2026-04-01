@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Branch } from 'src/branches/entities/branch.entity';
 import { BranchesService } from 'src/branches/branches.service';
+import { Branch } from 'src/branches/entities/branch.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
 import { DbException } from 'src/common/helpers';
@@ -21,15 +21,12 @@ export class ServicesService {
     private readonly serviceRepository: Repository<Service>
   ) {}
 
-  async create(branchId: string, createServiceDto: CreateServiceDto, user: User) {
-    const { company } = user;
-    const branch = await this.branchesService.findOne(company.id, branchId, user);
+  async create(branchId: string, createServiceDto: CreateServiceDto, authenticatedUser: User) {
+    const { company } = authenticatedUser;
+    const branch = await this.branchesService.findOne(company.id, branchId, authenticatedUser);
     
     try {
-      const service = this.serviceRepository.create({
-        ...createServiceDto,
-        branch
-      });
+      const service = this.serviceRepository.create({ ...createServiceDto, branch });
       await this.serviceRepository.save(service);
       return this.getServiceResponse(service);
     } catch(error) {
@@ -37,27 +34,22 @@ export class ServicesService {
     }
   }
 
-  async findAll(branchId: string, paginationDto: PaginationDto, user: User) {
-    const { company } = user;
-    const branch = await this.branchesService.findOne(company.id, branchId, user);
-    const serviceQuery = this.getServiceQuery(branch, user);
+  async findAll(branchId: string, paginationDto: PaginationDto, authenticatedUser: User) {
+    const { company } = authenticatedUser;
+    const branch = await this.branchesService.findOne(company.id, branchId, authenticatedUser);
+    const serviceQuery = this.getServiceQuery(branch, authenticatedUser);
     const { limit = 10, offset = 0 } = paginationDto;
-    const [ services, total ] = await this.serviceRepository.findAndCount({
-      where: serviceQuery,
-      take: limit,
-      skip: offset
-    });
-
+    const [ services, total ] = await this.serviceRepository.findAndCount({ where: serviceQuery, take: limit, skip: offset });
     return this.getPaginationServiceResponse(total, services);
   }
 
-  async findOneServiceResponse(branchId: string, id: string, user: User) {
-    const service = await this.findOne(branchId, id, user);
+  async findOneServiceResponse(branchId: string, serviceId: string, authenticatedUser: User) {
+    const service = await this.findOne(branchId, serviceId, authenticatedUser);
     return this.getServiceResponse(service);
   }
 
-  async update(branchId: string, id: string, updateServiceDto: UpdateServiceDto, user: User) {
-    const serviceFound = await this.findOne(branchId, id, user);
+  async update(branchId: string, serviceId: string, updateServiceDto: UpdateServiceDto, authenticatedUser: User) {
+    const serviceFound = await this.findOne(branchId, serviceId, authenticatedUser);
     const service = this.serviceRepository.merge(serviceFound, updateServiceDto);
 
     try {
@@ -68,29 +60,27 @@ export class ServicesService {
     }
   }
 
-  async status(branchId: string, id: string, user: User) {
-    const serviceFound = await this.findOne(branchId, id, user);
+  async status(branchId: string, serviceId: string, authenticatedUser: User) {
+    const serviceFound = await this.findOne(branchId, serviceId, authenticatedUser);
     serviceFound.isActive = !serviceFound.isActive;
     await this.serviceRepository.save(serviceFound);
   }
 
-  async remove(branchId: string, id: string, user: User) {
-    const serviceFound = await this.findOne(branchId, id, user);
+  async remove(branchId: string, serviceId: string, authenticatedUser: User) {
+    const serviceFound = await this.findOne(branchId, serviceId, authenticatedUser);
     serviceFound.isActive = false;
     await this.serviceRepository.save(serviceFound);
   }
 
-  async findOne(branchId: string, id: string, user: User) {
-    const { company } = user;
-    const branch = await this.branchesService.findOne(company.id, branchId, user);
-    const serviceQuery = this.getServiceQuery(branch, user, id);
-    const service = await this.serviceRepository.findOne({
-      where: serviceQuery,
-      relations: { branch: true }
-    });
+  async findOne(branchId: string, serviceId: string, authenticatedUser: User) {
+    const { company } = authenticatedUser;
+    const branch = await this.branchesService.findOne(company.id, branchId, authenticatedUser);
+    const serviceQuery = this.getServiceQuery(branch, authenticatedUser, serviceId);
+    const service = await this.serviceRepository.findOne({ where: serviceQuery, relations: { branch: true } });
 
     if(!service)
-      throw new NotFoundException(`Service with '${ id }' not found`);
+      throw new NotFoundException(`Service with '${ serviceId }' not found`);
+
     return service;
   }
 

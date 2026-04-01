@@ -12,7 +12,7 @@ export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post('bookings')
-  @Auth(UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiResponse({ status: 201, description: 'The booking has been created successfully.', type: BookingResponseDto })
   @ApiResponse({ status: 400, description: 'Bad request.' })
@@ -25,22 +25,6 @@ export class BookingsController {
     @GetUser() authenticatedUser: User
   ) {
     return this.bookingsService.create(branchId, createBookingDto, authenticatedUser);
-  }
-
-  @Post('customers/bookings')
-  @Auth(UserRole.CUSTOMER)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
-  @ApiResponse({ status: 201, description: 'The booking has been created successfully.', type: BookingResponseDto })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  @ApiResponse({ status: 404, description: 'Not found. Branch, User, Specialist or Services not found.' })
-  createByMeCustomer(
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Body() createBookingDto: CreateBookingDto,
-    @GetUser() authenticatedUser: User
-  ) {
-    return this.bookingsService.createByMeCustomer(branchId, createBookingDto, authenticatedUser);
   }
 
   @Get('bookings')
@@ -171,7 +155,7 @@ export class BookingsController {
   }
 
   @Get('bookings/:bookingId')
-  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiParam({ name: 'bookingId', description: 'ID of the booking to retrieve (UUID).' })
   @ApiResponse({ status: 200, description: 'Booking retrieved successfully.', type: BookingResponseDto })
@@ -187,7 +171,7 @@ export class BookingsController {
   }
 
   @Patch('bookings/:bookingId/cancel')
-  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiParam({ name: 'bookingId', description: 'ID of the booking to cancel (UUID).' })
   @ApiResponse({ status: 200, description: 'Booking canceled successfully.', type: BookingResponseDto })
@@ -203,7 +187,7 @@ export class BookingsController {
   }
 
   @Patch('bookings/:bookingId/complete')
-  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiParam({ name: 'bookingId', description: 'ID of the booking to complete (UUID).' })
   @ApiResponse({ status: 200, description: 'Booking completed successfully.', type: BookingResponseDto })

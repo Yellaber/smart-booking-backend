@@ -41,6 +41,7 @@ export class CreateBranchDto {
     @IsString()
     @MinLength(1)
     @MaxLength(10)
+    @IsOptional()
     phone?: string;
 
     @ApiProperty({

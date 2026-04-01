@@ -14,9 +14,9 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly configService: ConfigService,
     @Inject(forwardRef(() => CompaniesService))
     private readonly companiesService: CompaniesService,
+    private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>
@@ -49,15 +49,15 @@ export class AuthService {
     return this.getLoginResponseDto(user, jwtPayload);
   }
 
-  async refresh(companySlug: string, user: User) {
+  async refresh(companySlug: string, authenticatedUser: User) {
     const companyFound = await this.companiesService.findOne(companySlug);
-    const { id, company } = user;
+    const { id, company } = authenticatedUser;
 
     if(company.id !== companyFound.id)
       throw new UnauthorizedException('User unauthorized.');
 
     const jwtPayload = { userId: id, companyId: companyFound.id };
-    return this.getLoginResponseDto(user, jwtPayload);
+    return this.getLoginResponseDto(authenticatedUser, jwtPayload);
   }
 
   private async getUserByUserNameAndCompany(userName: string, company: Company) {
@@ -67,22 +67,23 @@ export class AuthService {
 
     if(!user)
       throw new UnauthorizedException('Credentials are not valid');
+
     return user;
   }
 
-  private getUserResponseDto(user: User): UserResponseDto {
-    const { password, company, ...userResponse }  = user;
+  private getUserResponseDto(authenticatedUser: User): UserResponseDto {
+    const { password, company, ...userResponse } = authenticatedUser;
     return userResponse;
   }
   
-  private getRegisterResponseDto(user: User, jwtPayload: JwtPayload): RegisterResponseDto {
-    const userResponse = this.getUserResponseDto(user);
+  private getRegisterResponseDto(authenticatedUser: User, jwtPayload: JwtPayload): RegisterResponseDto {
+    const userResponse = this.getUserResponseDto(authenticatedUser);
     const token = this.getJwtToken(jwtPayload);
     return { user: userResponse, token };
   }
   
-  private getLoginResponseDto(user: User, jwtPayload: JwtPayload): LoginResponseDto {
-    const { userName } = user;
+  private getLoginResponseDto(authenticatedUser: User, jwtPayload: JwtPayload): LoginResponseDto {
+    const { userName } = authenticatedUser;
     const token = this.getJwtToken(jwtPayload);
     return { userName, token };
   }

@@ -5,9 +5,9 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CompaniesModule } from 'src/companies/companies.module';
 import { User } from 'src/users/entities/user.entity';
-import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   controllers: [ AuthController ],
@@ -20,8 +20,8 @@ import { AuthService } from './auth.service';
       imports: [ ConfigModule ],
       inject: [ ConfigService ],
         useFactory: (configService: ConfigService) => ({
-        secret: configService.get( 'JWT_SECRET' ),
-        signOptions: { expiresIn: configService.get( 'JWT_EXPIRES_IN' )?? '2h' }
+        secret: configService.get('JWT_SECRET'),
+        signOptions: { expiresIn: configService.get('JWT_EXPIRES_IN')?? '2h' }
       })
     }),
     forwardRef(() => CompaniesModule)
