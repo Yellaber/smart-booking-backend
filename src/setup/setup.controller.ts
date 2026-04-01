@@ -10,7 +10,7 @@ export class SetupController {
 
   @Post()
   @ApiResponse({ status: 201, description: 'Indicate if the setup has been completed successfully or already was.', type: SetupResponseDto })
-  bootstraping(@Body() registerUserDto: RegisterUserDto) {
-    return this.setupService.bootstraping(registerUserDto);
+  bootstrap(@Body() registerUserDto: RegisterUserDto) {
+    return this.setupService.bootstrap(registerUserDto);
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { DataSource } from 'typeorm';
 import { UserRole } from 'src/common/enums';
 import { CreateCompanyDto } from 'src/companies/dto';
 import { Company } from 'src/companies/entities/company.entity';
@@ -16,7 +16,7 @@ export class SetupService {
     private readonly dataSource: DataSource
   ) {}
 
-  async bootstraping(registerUserDto: RegisterUserDto) {
+  async bootstrap(registerUserDto: RegisterUserDto) {
     const hasCompanies = await this.countCompanies();
     
     if(hasCompanies)
@@ -46,8 +46,8 @@ export class SetupService {
   private getCreateCompanyDto(): CreateCompanyDto {
     return {
       idNumber: '11111111111',
-      name: 'System',
-      webSite: 'www.mywebsite.com'
+      name: 'Smart Booking',
+      webSite: 'www.smartbooking.com'
     }
   }
 
