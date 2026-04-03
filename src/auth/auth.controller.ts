@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ApiParam, ApiResponse } from '@nestjs/swagger';
+import { UserRole } from 'src/common/enums';
 import { RegisterUserDto } from 'src/users/dto';
 import { User } from 'src/users/entities/user.entity';
 import { AuthService } from './auth.service';
@@ -15,7 +16,6 @@ export class AuthController {
   @ApiParam({ name: 'companySlug', description: 'Company slug.' })
   @ApiResponse({ status: 201, description: 'User created successfully.', type: RegisterResponseDto })
   @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. Token related' })
   @ApiResponse({ status: 404, description: 'Not found. Company not found.' })
   register(
     @Param('companySlug') companySlug: string,
@@ -38,10 +38,10 @@ export class AuthController {
   }
 
   @Get('refresh')
-  @Auth()
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'companySlug', description: 'Company slug.' })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully.', type: LoginResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Company not found.' })
   refresh(
     @Param('companySlug') companySlug: string,

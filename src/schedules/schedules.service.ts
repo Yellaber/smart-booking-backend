@@ -1,11 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Branch } from 'src/branches/entities/branch.entity';
-import { UserRole } from 'src/common/enums';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { DbException } from 'src/common/helpers/db-exception.helper';
-import { ScheduleQuery } from 'src/common/helpers/schedule-query.helper';
+import { DbException, Permission, ScheduleQuery } from 'src/common/helpers';
 import { SpecialistsService } from 'src/specialists/specialists.service';
 import { User } from 'src/users/entities/user.entity';
 import { CreateScheduleDto, PaginationScheduleResponseDto, ScheduleResponseDto } from './dto';
@@ -18,16 +16,18 @@ export class SchedulesService {
   constructor(
     @InjectRepository(Branch)
     private readonly branchRepository: Repository<Branch>,
+    private readonly dataSource: DataSource,
     @InjectRepository(Schedule)
     private readonly scheduleRepository: Repository<Schedule>,
-    private readonly specialistsService: SpecialistsService,
-    private readonly dataSource: DataSource
+    private readonly specialistsService: SpecialistsService
   ) {}
 
   async create(specialistId: string, createScheduleDto: CreateScheduleDto, authenticatedUser: User) {
     this.validateTimes(createScheduleDto);
     const specialist = await this.specialistsService.findOneById(specialistId);
-    await this.validatePermission(specialist.branch, authenticatedUser);
+    const { branch } = specialist;
+    const branchFound = await this.findBranchById(branch.id);
+    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
     await this.isScheduleConflict(specialistId, createScheduleDto);
 
     try {
@@ -40,21 +40,11 @@ export class SchedulesService {
   }
 
   async findAll(specialistId: string, paginationDto: PaginationDto, authenticatedUser: User) {
-    if(authenticatedUser.roles.includes(UserRole.SPECIALIST))
-      throw new ForbiddenException('User does not have permission to access this resource');
-
     const specialist = await this.specialistsService.findOneById(specialistId);
-    await this.validatePermission(specialist.branch, authenticatedUser);
+    const { branch } = specialist;
+    const branchFound = await this.findBranchById(branch.id);
+    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
     const where = ScheduleQuery.get(specialistId);
-    const { limit = 10, offset = 0 } = paginationDto;
-    const [ schedules, total ] = await this.scheduleRepository.findAndCount({ where, take: limit, skip: offset });
-    return this.getPaginationScheduleResponse(total, schedules);
-  }
-
-  async findAllByMe(paginationDto: PaginationDto, authenticatedUser: User) {
-    const specialist = await this.specialistsService.findOneByUserId(authenticatedUser);
-    await this.validatePermission(specialist.branch, authenticatedUser);
-    const where = ScheduleQuery.get(specialist.id);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ schedules, total ] = await this.scheduleRepository.findAndCount({ where, take: limit, skip: offset });
     return this.getPaginationScheduleResponse(total, schedules);
@@ -73,11 +63,10 @@ export class SchedulesService {
   }
 
   private async findOneById(specialistId: string, scheduleId: string, authenticatedUser: User) {
-    if(authenticatedUser.roles.includes(UserRole.SPECIALIST))
-      throw new ForbiddenException('User does not have permission to access this resource');
-
     const specialist = await this.specialistsService.findOneById(specialistId);
-    await this.validatePermission(specialist.branch, authenticatedUser);
+    const { branch } = specialist;
+    const branchFound = await this.findBranchById(branch.id);
+    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
     const where = ScheduleQuery.get(specialistId, scheduleId);    
     const schedule = await this.scheduleRepository.findOne({ where, relations: { specialist: true } });
 
@@ -99,19 +88,7 @@ export class SchedulesService {
       .getOne();
 
     if(schedule)
-      throw new BadRequestException('Schedule conflict. The specialist already has a schedule that overlaps with the provided time range on the same day of the week.');
-  }
-
-  private async validatePermission(branch: Branch, user: User) {
-    const branchFound = await this.findBranchById(branch.id);
-    const company = branchFound.company;
-  
-    if(user.roles.includes(UserRole.SUPER_USER)) return;
-    
-    const { company: companyUser } = user;
-      
-    if(company.id !== companyUser.id)
-      throw new ForbiddenException('User does not have permission to access this resource');
+      throw new BadRequestException('Schedule conflict. The specialist already has a schedule that overlaps with the provided time range on the same day of the week');
   }
 
   private async findBranchById(branchId: string) {

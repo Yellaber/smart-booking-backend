@@ -1,11 +1,11 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Booking } from 'src/bookings/entities/booking.entity';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { AppointmentStatus, UserRole } from 'src/common/enums';
-import { DbException, ScheduleQuery } from 'src/common/helpers';
+import { AppointmentStatus } from 'src/common/enums';
+import { DbException, Permission, ScheduleQuery } from 'src/common/helpers';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
 import { SpecialistsService } from 'src/specialists/specialists.service';
 import { User } from 'src/users/entities/user.entity';
@@ -29,26 +29,18 @@ export class ScheduleExceptionsService {
     this.validateDateAndTimes(createScheduleExceptionDto);
     await this.validateBookingExistence(specialistId, createScheduleExceptionDto);
     const specialist = await this.specialistsService.findOneById(specialistId);
-    await this.validatePermission(specialist.branch, authenticatedUser);
+    const { branch } = specialist;
+    const branchFound = await this.findBranchById(branch.id);
+    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
     const scheduleException = await this.saveScheduleException(specialist, createScheduleExceptionDto);
     return scheduleException;
   }
   
-  async findAllByMe(paginationDto: PaginationDto, authenticatedUser: User) {
-    const specialist = await this.specialistsService.findOneByUserId(authenticatedUser);
-    await this.validatePermission(specialist.branch, authenticatedUser);
-    const where = ScheduleQuery.get(specialist.id);
-    const { limit = 10, offset = 0 } = paginationDto;
-    const [ scheduleExceptions, total ] = await this.scheduleExceptionRepository.findAndCount({ where, take: limit, skip: offset });
-    return this.getPaginationScheduleExceptionResponse(total, scheduleExceptions);
-  }
-
   async findAll(specialistId: string, paginationDto: PaginationDto, authenticatedUser: User) {
-    if(authenticatedUser.roles.includes(UserRole.SPECIALIST))
-      throw new ForbiddenException('User does not have permission to access this resource');
-    
     const specialist = await this.specialistsService.findOneById(specialistId);
-    await this.validatePermission(specialist.branch, authenticatedUser);
+    const { branch } = specialist;
+    const branchFound = await this.findBranchById(branch.id);
+    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
     const where = ScheduleQuery.get(specialistId);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ scheduleExceptions, total ] = await this.scheduleExceptionRepository.findAndCount({ where, take: limit, skip: offset });
@@ -56,22 +48,22 @@ export class ScheduleExceptionsService {
   }
 
   async findOneScheduleExceptionResponseById(specialistId: string, scheduleExceptionId: string, authenticatedUser: User) {
-    if(authenticatedUser.roles.includes(UserRole.SPECIALIST))
-      throw new ForbiddenException('User does not have permission to access this resource');
-
-    const specialist = await this.specialistsService.findOneById(specialistId);
-    await this.validatePermission(specialist.branch, authenticatedUser);
-    const scheduleException = await this.findOneById(specialistId, scheduleExceptionId);
+    const scheduleException = await this.findOneById(specialistId, scheduleExceptionId, authenticatedUser);
     return this.getScheduleExceptionResponse(scheduleException);
   }
 
   async remove(specialistId: string, scheduleExceptionId: string, authenticatedUser: User) {
-    const specialist = await this.specialistsService.findOneById(specialistId);
-    await this.validatePermission(specialist.branch, authenticatedUser);
-    return await this.saveScheduleExceptionStatus(specialistId, scheduleExceptionId);
+    const scheduleException = await this.findOneById(specialistId, scheduleExceptionId, authenticatedUser);
+    scheduleException.isActive = false;
+    await this.scheduleExceptionRepository.save(scheduleException);
+    return this.getScheduleExceptionResponse(scheduleException);
   }
 
-  private async findOneById(specialistId: string, scheduleExceptionId: string) {
+  private async findOneById(specialistId: string, scheduleExceptionId: string, authenticatedUser: User) {
+    const specialist = await this.specialistsService.findOneById(specialistId);
+    const { branch } = specialist;
+    const branchFound = await this.findBranchById(branch.id);
+    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
     const where = ScheduleQuery.get(specialistId, scheduleExceptionId);
     const scheduleException = await this.scheduleExceptionRepository.findOne({ where, relations: { specialist: true } });
     
@@ -123,12 +115,6 @@ export class ScheduleExceptionsService {
       throw new BadRequestException('Schedule exception conflict. The specialist already has a schedule exception that overlaps with the provided time range on the same date.');
   }
 
-  private async saveScheduleExceptionStatus(specialistId: string, scheduleExceptionId: string) {
-    const scheduleException = await this.findOneById(specialistId, scheduleExceptionId);
-    scheduleException.isActive = false;
-    await this.scheduleExceptionRepository.save(scheduleException);
-  }
-
   private async findBranchById(branchId: string) {
     const branch = await this.branchRepository.findOne({ where: { id: branchId, isActive: true }, relations: { company: true } });
     
@@ -164,18 +150,6 @@ export class ScheduleExceptionsService {
     }
   }
 
-  private async validatePermission(branch: Branch, authenticatedUser: User) {
-    const branchFound = await this.findBranchById(branch.id);
-    const company = branchFound.company;
-
-    if(authenticatedUser.roles.includes(UserRole.SUPER_USER)) return;
-    
-    const { company: companyUser } = authenticatedUser;
-      
-    if(company.id !== companyUser.id)
-      throw new ForbiddenException('User does not have permission to access this resource');
-  }
-  
   private getTimeToSecond(hourString: string) {
     const hourArray = hourString.split(':').map(Number);
     return hourArray[0] * 3600 + hourArray[1] * 60;

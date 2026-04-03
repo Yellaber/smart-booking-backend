@@ -1,10 +1,10 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 import { BranchesService } from 'src/branches/branches.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { AppointmentStatus, UserRole } from 'src/common/enums';
-import { DbException } from 'src/common/helpers';
+import { DbException, Permission } from 'src/common/helpers';
 import { Schedule } from 'src/schedules/entities/schedule.entity';
 import { DayOfWeek } from 'src/schedules/interfaces/day-of-week.enum';
 import { ScheduleException } from 'src/schedule-exceptions/entities/schedule-exception.entity';
@@ -12,8 +12,9 @@ import { TypeScheduleException } from 'src/schedule-exceptions/interfaces/type-s
 import { Service } from 'src/services/entities/service.entity';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
 import { User } from 'src/users/entities/user.entity';
-import { BookingResponseDto, CreateBookingDto, PaginationBookingResponseDto, ServiceBooking } from './dto';
+import { CreateBookingDto } from './dto';
 import { Booking } from './entities/booking.entity';
+import { BookingResponse } from './helpers/booking-response.helper';
 import { BookingQuery } from './interface/booking-query.interface';
 
 @Injectable()
@@ -34,12 +35,11 @@ export class BookingsService {
   ) {}
 
   async create(branchId: string, createBookingDto: CreateBookingDto, authenticatedUser: User) {
-    const allowedRoles = [ UserRole.RECEPTIONIST, UserRole.ADMIN ];
     const { userId, specialistId, servicesIds, ...restBooking } = createBookingDto;
-    this.validatePermission(authenticatedUser, userId, allowedRoles);
     const branch = await this.branchesService.findOneById(branchId, authenticatedUser);
-    const { id: companyId } = branch.company;
-    const user = await this.findUserInCompany(userId, companyId);
+    const { company } = branch;
+    Permission.validateInBooking(company, authenticatedUser, userId, [ UserRole.RECEPTIONIST, UserRole.ADMIN ]);
+    const user = await this.findUserInCompany(userId, company.id);
     const specialist = await this.findSpecialistInBranch(specialistId, branchId);
     const services = await this.findServicesInBranch(servicesIds, branchId);
     await this.validateSpecialistServices(specialistId, servicesIds);
@@ -51,13 +51,13 @@ export class BookingsService {
     try {
       const booking = this.bookingRepository.create({ ...restBooking, endTime, branch, user, specialist, services });
       await this.bookingRepository.save(booking);
-      return this.getBookingResponse(booking);
+      return BookingResponse.get(booking);
     } catch(error) {
       return this.dbException.handle(error);
     }
   }
 
-  async findAllByBranch(branchId: string, paginationDto: PaginationDto, authenticatedUser: User, status?: AppointmentStatus) {
+  async findAllByBranchId(branchId: string, paginationDto: PaginationDto, authenticatedUser: User, status?: AppointmentStatus) {
     await this.branchesService.findOneById(branchId, authenticatedUser);
     let query: BookingQuery = { branch: { id: branchId } };
 
@@ -67,60 +67,49 @@ export class BookingsService {
     return this.getPaginationBooking(query, paginationDto);
   }
 
-  async findAllByMeCustomer(branchId: string, paginationDto: PaginationDto, authenticatedUser: User, status?: AppointmentStatus) {
-    await this.branchesService.findOneById(branchId, authenticatedUser);
-    let query: BookingQuery = { branch: { id: branchId }, user: { id: authenticatedUser.id } };
-
-    if(status)
-      query = { ...query, status };
-
-    return this.getPaginationBooking(query, paginationDto);
-  }
-
-  async findAllByMeSpecialist(branchId: string, paginationDto: PaginationDto, authenticatedUser: User, status?: AppointmentStatus) {
-    await this.branchesService.findOneById(branchId, authenticatedUser);
-    const specialist = await this.findSpecialistByUserIdInBranch(authenticatedUser.id, branchId);
-    let query: BookingQuery = { branch: { id: branchId }, specialist: { id: specialist.id } };
-
-    if(status)
-      query = { ...query, status };
-
-    return this.getPaginationBooking(query, paginationDto);
-  }
-
   async findAllBySpecialistId(branchId: string, specialistId: string, paginationDto: PaginationDto, authenticatedUser: User) {
-    if(authenticatedUser.roles.includes(UserRole.SPECIALIST))
-      throw new ForbiddenException('User does not have permission to access this resource');
-
     await this.branchesService.findOneById(branchId, authenticatedUser);
-    await this.findSpecialistInBranch(specialistId, branchId);
-    let query: BookingQuery = { branch: { id: branchId }, specialist: { id: specialistId }, status: AppointmentStatus.CONFIRMED };
+    const { company } = authenticatedUser;
+    const specialist = await this.findSpecialistInBranch(specialistId, branchId);
+    const { user } = specialist;
+    Permission.validateInBooking(company, authenticatedUser, user.id, [ UserRole.RECEPTIONIST, UserRole.ADMIN ]);
+    const query: BookingQuery = { branch: { id: branchId }, specialist: { id: specialistId } };
     return this.getPaginationBooking(query, paginationDto);
   }
+
+  async findAllByUserId(userId: string, paginationDto: PaginationDto, authenticatedUser: User) {
+    const { company } = authenticatedUser;
+    await this.findUserInCompany(userId, company.id);
+    Permission.validateInBooking(company, authenticatedUser, userId, []);
+    const query: BookingQuery = { user: { id: userId } };
+    return this.getPaginationBooking(query, paginationDto);
+  }
+
 
   async findOneBookingResponseById(branchId: string, bookingId: string, authenticatedUser: User) {
-    const allowedRoles = [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ];
     const booking = await this.findOneById(branchId, bookingId, authenticatedUser);
-    const { id: userId } = booking.user;
-    this.validatePermission(authenticatedUser, userId, allowedRoles);
-    return this.getBookingResponse(booking);
+    return BookingResponse.get(booking);
   }
 
   async changeStatus(branchId: string, bookingId: string, status: AppointmentStatus, authenticatedUser: User) {
-    const allowedRoles = [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ];
     const booking = await this.findOneById(branchId, bookingId, authenticatedUser);
-    const { id: userId } = booking.user;
-    this.validatePermission(authenticatedUser, userId, allowedRoles);
+    const { user, branch } = booking;
+    Permission.validateInBooking(branch.company, authenticatedUser, user.id, [ UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     booking.status = status;
     await this.bookingRepository.save(booking);
-    return this.getBookingResponse(booking);
+    return BookingResponse.get(booking);
   }
   
   async findOneById(branchId: string, bookingId: string, authenticatedUser: User) {
     await this.branchesService.findOneById(branchId, authenticatedUser);
     const booking = await this.bookingRepository.findOne({ 
       where: { id: bookingId, branch: { id: branchId } },
-      relations: { user: true, specialist: true, services: true }
+      relations: { 
+        branch: { company: true },
+        user: true,
+        specialist: { user: true },
+        services: true
+      }
     });
 
     if(!booking)
@@ -135,10 +124,10 @@ export class BookingsService {
       where: query, 
       take: limit, 
       skip: offset,
-      relations: { user: true, specialist: true, services: true }
+      relations: { branch: true, user: true, specialist: { user: true }, services: true }
     });
 
-    return this.getPaginationBookingResponse(total, bookings);
+    return BookingResponse.getPagination(total, bookings);
   }
 
   private async findServicesInBranch(servicesIds: string[], branchId: string) {
@@ -168,15 +157,6 @@ export class BookingsService {
 
     if(!specialist)
       throw new NotFoundException(`Specialist with '${ specialistId }' not found in branch '${ branchId }'`);
-
-    return specialist;
-  }
-
-  private async findSpecialistByUserIdInBranch(userId: string, branchId: string) {
-    const specialist = await this.specialistRepository.findOne({ where: { user: { id: userId }, branch: { id: branchId }, isActive: true } });
-
-    if(!specialist)
-      throw new NotFoundException(`Specialist with user '${ userId }' not found in branch '${ branchId }'`);
 
     return specialist;
   }
@@ -246,19 +226,6 @@ export class BookingsService {
     return !!scheduleExceptions;
   }
 
-  private validatePermission(authenticatedUser: User, userId: string, allowedRoles: UserRole[]) {
-    if(authenticatedUser.roles.includes(UserRole.SUPER_USER)) return;
-  
-    const isSameUser = authenticatedUser.id === userId;
-    const hasAllowedRole = authenticatedUser.roles.some(role => allowedRoles.includes(role));
-  
-    if(hasAllowedRole) return;
-  
-    if(isSameUser) return;
-  
-    throw new ForbiddenException('User does not have permission to access this resource');
-  }
-
   private calculateEndTime(startTime: string, services: Service[]) {
     const totalDuration = services.reduce((total, service) => total + service.durationMinutes, 0);
     const [ hours, minutes ] = startTime.split(':').map(Number);
@@ -268,34 +235,8 @@ export class BookingsService {
     return `${ String(endTimeHours).padStart(2, '0') }:${ String(endTimeMinutes).padStart(2, '0') }`;
   }
 
-  private getServiceBooking(services: Service[]): ServiceBooking[] {
-    return services.map(service => ({
-      name: service.name,
-      durationMinutes: service.durationMinutes
-    }));
-  }
-
-  private getBookingResponse(booking: Booking): BookingResponseDto {
-    const { branch, user, specialist, services, ...restBooking } = booking;
-    const { id: userId } = user;
-    const { id: specialistId } = specialist;
-    const servicesBooking = this.getServiceBooking(services);
-    return {
-      ...restBooking,
-      userId,
-      specialistId,
-      services: servicesBooking,
-    };
-  }
-
-  private getPaginationBookingResponse(total: number, bookings: Booking[]): PaginationBookingResponseDto {
-    const bookingsResponse = bookings.map(booking => this.getBookingResponse(booking));
-    return { total, bookings: bookingsResponse };
-  }
-
   private getDayOfWeek(date: string) {
-    const daysOfWeek = [ DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, 
-      DayOfWeek.SATURDAY ];
+    const daysOfWeek = Object.values(DayOfWeek);
     const [ year, month, day ] = date.split('-').map(Number);
     const numberDayOfWeek = new Date(year, month - 1, day).getDay();
     return daysOfWeek[ numberDayOfWeek ];

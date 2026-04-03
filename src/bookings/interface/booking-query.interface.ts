@@ -2,7 +2,7 @@ import { AppointmentStatus } from 'src/common/enums'
 
 export interface BookingQuery {
   id?: string,
-  branch: {
+  branch?: {
     id: string
   },
   user?: {

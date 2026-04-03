@@ -46,6 +46,9 @@ export class SpecialistsService {
   }
 
   async findAll(branchId: string, paginationDto: PaginationDto, authenticatedUser: User) {
+    if(authenticatedUser.roles.includes(UserRole.SPECIALIST))
+      throw new ForbiddenException('User does not have permission to access this resource. Only allowed for customer, receptionist, admin and super-user.');
+
     const { slug: companySlug } = authenticatedUser.company;
     const branch = await this.branchesService.findOne(companySlug, branchId, authenticatedUser);
     const { limit = 10, offset = 0 } = paginationDto;
@@ -63,7 +66,7 @@ export class SpecialistsService {
   async findOneById(specialistId: string) {
     const specialist = await this.specialistRepository.findOne({
       where: { id: specialistId, isActive: true },
-      relations: { branch: true }
+      relations: { branch: true, user: true }
     });
 
     if(!specialist)
@@ -85,6 +88,9 @@ export class SpecialistsService {
   }
 
   async findOneSpecialistResponse(branchId: string, specialistId: string, authenticatedUser: User) {
+    if(authenticatedUser.roles.includes(UserRole.SPECIALIST) && authenticatedUser.id !== specialistId)
+      throw new ForbiddenException('User does not have permission to access this resource. Only specialists can access their own data.');
+
     const specialist = await this.findOne(branchId, specialistId, authenticatedUser);
     return this.getSpecialistResponse(specialist);
   }
@@ -97,9 +103,6 @@ export class SpecialistsService {
   }
 
   private async findOne(branchId: string, specialistId: string, authenticatedUser: User) {
-    if(authenticatedUser.roles.includes(UserRole.SPECIALIST) && authenticatedUser.id !== specialistId)
-      throw new ForbiddenException('User does not have permission to access this resource');
-
     const { slug: companySlug } = authenticatedUser.company;
     const branch = await this.branchesService.findOne(companySlug, branchId, authenticatedUser);
     const specialistQuery = this.getSpecialistQuery(branch, authenticatedUser, specialistId);

@@ -1,9 +1,10 @@
-import { forwardRef, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, forwardRef, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { DbException } from 'src/common/helpers';
 import { CompaniesService } from 'src/companies/companies.service';
 import { Company } from 'src/companies/entities/company.entity';
 import { RegisterUserDto, UserResponseDto } from 'src/users/dto';
@@ -13,6 +14,8 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
+  private readonly dbException = new DbException('AuthService');
+
   constructor(
     @Inject(forwardRef(() => CompaniesService))
     private readonly companiesService: CompaniesService,
@@ -24,23 +27,24 @@ export class AuthService {
 
   async register(companySlug: string, registerUserDto: RegisterUserDto) {
     const company = await this.companiesService.findOne(companySlug);
-    const { password, ...restRegisterUserDto } = registerUserDto;
+    const { password: passwordRegisterUser, ...restRegisterUserDto } = registerUserDto;
     const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
-    const passwordBcrypt = await bcrypt.hash(password, saltRounds);
-    const user = this.userRepository.create({
-      ...restRegisterUserDto,
-      password: passwordBcrypt,
-      company
-    });
-    await this.userRepository.save(user);
-    const jwtPayload = { userId: user.id, companyId: company.id };
-    return this.getRegisterResponseDto(user, jwtPayload);
+    const password = await bcrypt.hash(passwordRegisterUser, saltRounds);
+
+    try {
+      const user = this.userRepository.create({ ...restRegisterUserDto, password, company });
+      await this.userRepository.save(user);
+      const jwtPayload = { userId: user.id, companyId: company.id };
+      return this.getRegisterResponseDto(user, jwtPayload);
+    } catch(error) {
+      throw this.dbException.handle(error);
+    }
   }
 
   async login(companySlug: string, loginUserDto: LoginUserDto) {
     const company = await this.companiesService.findOne(companySlug);
     const { userName, password } = loginUserDto;
-    const user = await this.getUserByUserNameAndCompany(userName, company);
+    const user = await this.getUserByUserNameAndCompany(company, userName);
 
     if(!await bcrypt.compare(password, user.password))
       throw new UnauthorizedException('Credentials are not valid');
@@ -50,17 +54,17 @@ export class AuthService {
   }
 
   async refresh(companySlug: string, authenticatedUser: User) {
-    const companyFound = await this.companiesService.findOne(companySlug);
-    const { id, company } = authenticatedUser;
+    const company = await this.companiesService.findOne(companySlug);
+    const { id: userAuthenticatedId, company: companyAuthenticatedUser } = authenticatedUser;
 
-    if(company.id !== companyFound.id)
-      throw new UnauthorizedException('User unauthorized.');
+    if(companyAuthenticatedUser.id !== company.id)
+      throw new ForbiddenException('User does not have permission to access this resource. User must belong to the same company');
 
-    const jwtPayload = { userId: id, companyId: companyFound.id };
+    const jwtPayload = { userId: userAuthenticatedId, companyId: company.id };
     return this.getLoginResponseDto(authenticatedUser, jwtPayload);
   }
 
-  private async getUserByUserNameAndCompany(userName: string, company: Company) {
+  private async getUserByUserNameAndCompany(company: Company, userName: string) {
     const user = await this.userRepository.findOne({
       where: { userName: userName.toLowerCase(), company: { id: company.id } }
     });
@@ -72,7 +76,7 @@ export class AuthService {
   }
 
   private getUserResponseDto(authenticatedUser: User): UserResponseDto {
-    const { password, company, ...userResponse } = authenticatedUser;
+    const { password, company, bookings, ...userResponse } = authenticatedUser;
     return userResponse;
   }
   
