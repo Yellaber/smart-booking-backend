@@ -125,16 +125,6 @@ export class ScheduleExceptionsService {
     return branch;
   }
 
-  // private getScheduleExceptionResponse(scheduleException: ScheduleException): ScheduleExceptionResponseDto {
-  //   const { isActive, specialist, ...restScheduleException } = scheduleException;
-  //   return restScheduleException;
-  // }
-
-  // private getPaginationScheduleExceptionResponse(total: number, scheduleExceptions: ScheduleException[]): PaginationScheduleExceptionResponseDto {
-  //   const schedulesResponse = scheduleExceptions.map(schedule => this.getScheduleExceptionResponse(schedule));
-  //   return { total, scheduleExceptions: schedulesResponse };
-  // }
-
   private validateDateAndTimes(createScheduleExceptionDto: CreateScheduleExceptionDto) {
     const today = this.getToday();
     const scheduleExceptionDate = createScheduleExceptionDto.date;

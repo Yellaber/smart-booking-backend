@@ -6,8 +6,9 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { DbException, Permission, ScheduleQuery } from 'src/common/helpers';
 import { SpecialistsService } from 'src/specialists/specialists.service';
 import { User } from 'src/users/entities/user.entity';
-import { CreateScheduleDto, PaginationScheduleResponseDto, ScheduleResponseDto } from './dto';
+import { CreateScheduleDto } from './dto';
 import { Schedule } from './entities/schedule.entity';
+import { ScheduleResponse } from './helpers/schedule-response.helper';
 
 @Injectable()
 export class SchedulesService {
@@ -33,7 +34,7 @@ export class SchedulesService {
     try {
       const schedule = this.scheduleRepository.create({ ...createScheduleDto, specialist });
       await this.scheduleRepository.insert(schedule);
-      return this.getScheduleResponse(schedule);
+      return ScheduleResponse.get(schedule);
     } catch(error) {
       return this.dbException.handle(error);
     }
@@ -47,19 +48,19 @@ export class SchedulesService {
     const where = ScheduleQuery.get(specialistId);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ schedules, total ] = await this.scheduleRepository.findAndCount({ where, take: limit, skip: offset });
-    return this.getPaginationScheduleResponse(total, schedules);
+    return ScheduleResponse.getPagination(total, schedules);
   }
 
   async findOneSheduleResponseById(specialistId: string, scheduleId: string, authenticatedUser: User) {
     const schedule = await this.findOneById(specialistId, scheduleId, authenticatedUser);
-    return this.getScheduleResponse(schedule);
+    return ScheduleResponse.get(schedule);
   }
 
   async remove(specialistId: string, scheduleId: string, authenticatedUser: User) {
     const schedule = await this.findOneById(specialistId, scheduleId, authenticatedUser);
     schedule.isActive = false;
     await this.scheduleRepository.save(schedule);
-    return this.getScheduleResponse(schedule);
+    return ScheduleResponse.get(schedule);
   }
 
   private async findOneById(specialistId: string, scheduleId: string, authenticatedUser: User) {
@@ -98,16 +99,6 @@ export class SchedulesService {
       throw new NotFoundException(`Branch with '${ branchId }' not found`);
     
     return branch;
-  }
-
-  private getScheduleResponse(schedule: Schedule): ScheduleResponseDto {
-    const { isActive, specialist, ...restSchedule } = schedule;
-    return restSchedule;
-  }
-
-  private getPaginationScheduleResponse(total: number, schedules: Schedule[]): PaginationScheduleResponseDto {
-    const schedulesResponse = schedules.map(schedule => this.getScheduleResponse(schedule));
-    return { total, schedules: schedulesResponse };
   }
 
   private validateTimes(createScheduleDto: CreateScheduleDto) {
