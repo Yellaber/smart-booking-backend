@@ -9,8 +9,9 @@ import { DbException, Permission, ScheduleQuery } from 'src/common/helpers';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
 import { SpecialistsService } from 'src/specialists/specialists.service';
 import { User } from 'src/users/entities/user.entity';
-import { CreateScheduleExceptionDto, PaginationScheduleExceptionResponseDto, ScheduleExceptionResponseDto } from './dto';
+import { CreateScheduleExceptionDto } from './dto';
 import { ScheduleException } from './entities/schedule-exception.entity';
+import { ScheduleExceptionResponse } from './helpers/schedule-exception-response.helper';
 
 @Injectable()
 export class ScheduleExceptionsService {
@@ -44,19 +45,19 @@ export class ScheduleExceptionsService {
     const where = ScheduleQuery.get(specialistId);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ scheduleExceptions, total ] = await this.scheduleExceptionRepository.findAndCount({ where, take: limit, skip: offset });
-    return this.getPaginationScheduleExceptionResponse(total, scheduleExceptions);
+    return ScheduleExceptionResponse.getPagination(total, scheduleExceptions);
   }
 
   async findOneScheduleExceptionResponseById(specialistId: string, scheduleExceptionId: string, authenticatedUser: User) {
     const scheduleException = await this.findOneById(specialistId, scheduleExceptionId, authenticatedUser);
-    return this.getScheduleExceptionResponse(scheduleException);
+    return ScheduleExceptionResponse.get(scheduleException);
   }
 
   async remove(specialistId: string, scheduleExceptionId: string, authenticatedUser: User) {
     const scheduleException = await this.findOneById(specialistId, scheduleExceptionId, authenticatedUser);
     scheduleException.isActive = false;
     await this.scheduleExceptionRepository.save(scheduleException);
-    return this.getScheduleExceptionResponse(scheduleException);
+    return ScheduleExceptionResponse.get(scheduleException);
   }
 
   private async findOneById(specialistId: string, scheduleExceptionId: string, authenticatedUser: User) {
@@ -79,7 +80,7 @@ export class ScheduleExceptionsService {
     try {
       const scheduleException = this.scheduleExceptionRepository.create({ ...createScheduleExceptionDto, specialist });
       await this.scheduleExceptionRepository.insert(scheduleException);
-      return this.getScheduleExceptionResponse(scheduleException);
+      return ScheduleExceptionResponse.get(scheduleException);
     } catch(error) {
       return this.dbException.handle(error);
     }
@@ -124,15 +125,15 @@ export class ScheduleExceptionsService {
     return branch;
   }
 
-  private getScheduleExceptionResponse(scheduleException: ScheduleException): ScheduleExceptionResponseDto {
-    const { isActive, specialist, ...restScheduleException } = scheduleException;
-    return restScheduleException;
-  }
+  // private getScheduleExceptionResponse(scheduleException: ScheduleException): ScheduleExceptionResponseDto {
+  //   const { isActive, specialist, ...restScheduleException } = scheduleException;
+  //   return restScheduleException;
+  // }
 
-  private getPaginationScheduleExceptionResponse(total: number, scheduleExceptions: ScheduleException[]): PaginationScheduleExceptionResponseDto {
-    const schedulesResponse = scheduleExceptions.map(schedule => this.getScheduleExceptionResponse(schedule));
-    return { total, scheduleExceptions: schedulesResponse };
-  }
+  // private getPaginationScheduleExceptionResponse(total: number, scheduleExceptions: ScheduleException[]): PaginationScheduleExceptionResponseDto {
+  //   const schedulesResponse = scheduleExceptions.map(schedule => this.getScheduleExceptionResponse(schedule));
+  //   return { total, scheduleExceptions: schedulesResponse };
+  // }
 
   private validateDateAndTimes(createScheduleExceptionDto: CreateScheduleExceptionDto) {
     const today = this.getToday();
