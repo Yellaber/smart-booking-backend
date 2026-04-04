@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { DbException, Permission, ScheduleQuery } from 'src/common/helpers';
+import { DbException, FormatScheduleQuery, Permission } from 'src/common/helpers';
 import { SpecialistsService } from 'src/specialists/specialists.service';
 import { User } from 'src/users/entities/user.entity';
 import { CreateScheduleDto } from './dto';
@@ -45,7 +45,7 @@ export class SchedulesService {
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
     Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
-    const where = ScheduleQuery.get(specialistId);
+    const where = FormatScheduleQuery.get(specialistId);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ schedules, total ] = await this.scheduleRepository.findAndCount({ where, take: limit, skip: offset });
     return ScheduleResponse.getPagination(total, schedules);
@@ -68,7 +68,7 @@ export class SchedulesService {
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
     Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
-    const where = ScheduleQuery.get(specialistId, scheduleId);    
+    const where = FormatScheduleQuery.get(specialistId, scheduleId);
     const schedule = await this.scheduleRepository.findOne({ where, relations: { specialist: true } });
 
     if(!schedule)

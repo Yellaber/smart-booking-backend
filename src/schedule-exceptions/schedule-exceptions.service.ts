@@ -5,7 +5,7 @@ import { Booking } from 'src/bookings/entities/booking.entity';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { AppointmentStatus } from 'src/common/enums';
-import { DbException, Permission, ScheduleQuery } from 'src/common/helpers';
+import { DbException, FormatScheduleQuery, Permission } from 'src/common/helpers';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
 import { SpecialistsService } from 'src/specialists/specialists.service';
 import { User } from 'src/users/entities/user.entity';
@@ -42,7 +42,7 @@ export class ScheduleExceptionsService {
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
     Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
-    const where = ScheduleQuery.get(specialistId);
+    const where = FormatScheduleQuery.get(specialistId);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ scheduleExceptions, total ] = await this.scheduleExceptionRepository.findAndCount({ where, take: limit, skip: offset });
     return ScheduleExceptionResponse.getPagination(total, scheduleExceptions);
@@ -65,7 +65,7 @@ export class ScheduleExceptionsService {
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
     Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
-    const where = ScheduleQuery.get(specialistId, scheduleExceptionId);
+    const where = FormatScheduleQuery.get(specialistId, scheduleExceptionId);
     const scheduleException = await this.scheduleExceptionRepository.findOne({ where, relations: { specialist: true } });
     
     if(!scheduleException)

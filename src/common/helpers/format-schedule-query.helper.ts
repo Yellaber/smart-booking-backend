@@ -1,10 +1,6 @@
-export interface ScheduleQuery {
-  id?: string;
-  specialist: { id: string };
-  isActive?: boolean;
-}
+import { ScheduleQuery } from '../interfaces/schedule-query.interface';
 
-export class ScheduleQuery {
+export class FormatScheduleQuery {
   static get(specialistId: string, scheduleId?: string) {
     let query: ScheduleQuery = { specialist: { id: specialistId }, isActive: true };
         
