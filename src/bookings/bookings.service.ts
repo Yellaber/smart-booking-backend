@@ -4,9 +4,8 @@ import { DataSource, In, Repository } from 'typeorm';
 import { BranchesService } from 'src/branches/branches.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { AppointmentStatus, UserRole } from 'src/common/enums';
-import { DbException, Permission } from 'src/common/helpers';
+import { DbException, HandlerDate, Permission } from 'src/common/helpers';
 import { Schedule } from 'src/schedules/entities/schedule.entity';
-import { DayOfWeek } from 'src/schedules/interfaces/day-of-week.enum';
 import { ScheduleException } from 'src/schedule-exceptions/entities/schedule-exception.entity';
 import { TypeScheduleException } from 'src/schedule-exceptions/interfaces/type-schedule-exception.enum';
 import { Service } from 'src/services/entities/service.entity';
@@ -43,7 +42,7 @@ export class BookingsService {
     const specialist = await this.findSpecialistInBranch(specialistId, branchId);
     const services = await this.findServicesInBranch(servicesIds, branchId);
     await this.validateSpecialistServices(specialistId, servicesIds);
-    const endTime = this.calculateEndTime(restBooking.startTime, services);
+    const endTime = HandlerDate.calculateEndTime(restBooking.startTime, services);
     await this.validateSpecialistSchedule(specialistId, restBooking.date, restBooking.startTime, endTime);
     await this.validateSpecialistScheduleExceptionsBlock(specialistId, restBooking.date, restBooking.startTime, endTime);
     await this.validateBookingTimeSlot(specialistId, restBooking.date, restBooking.startTime, endTime);
@@ -84,7 +83,6 @@ export class BookingsService {
     const query: BookingQuery = { user: { id: userId } };
     return this.getPaginationBooking(query, paginationDto);
   }
-
 
   async findOneBookingResponseById(branchId: string, bookingId: string, authenticatedUser: User) {
     const booking = await this.findOneById(branchId, bookingId, authenticatedUser);
@@ -176,7 +174,7 @@ export class BookingsService {
   }
 
   private async validateSpecialistSchedule(specialistId: string, date: string, startTime: string, endTime: string) {
-    const dayOfWeek = this.getDayOfWeek(date);
+    const dayOfWeek = HandlerDate.getDayOfWeek(date);
     const schedule = await this.dataSource.createQueryBuilder()
       .select('schedule')
       .from(Schedule, 'schedule')
@@ -224,21 +222,5 @@ export class BookingsService {
       .getOne();
 
     return !!scheduleExceptions;
-  }
-
-  private calculateEndTime(startTime: string, services: Service[]) {
-    const totalDuration = services.reduce((total, service) => total + service.durationMinutes, 0);
-    const [ hours, minutes ] = startTime.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes + totalDuration;
-    const endTimeHours = Math.floor(totalMinutes / 60);
-    const endTimeMinutes = totalMinutes % 60;
-    return `${ String(endTimeHours).padStart(2, '0') }:${ String(endTimeMinutes).padStart(2, '0') }`;
-  }
-
-  private getDayOfWeek(date: string) {
-    const daysOfWeek = Object.values(DayOfWeek);
-    const [ year, month, day ] = date.split('-').map(Number);
-    const numberDayOfWeek = new Date(year, month - 1, day).getDay();
-    return daysOfWeek[ numberDayOfWeek ];
   }
 }
