@@ -38,7 +38,7 @@ export class BookingsService {
     const { userId, specialistId, servicesIds, ...restBooking } = createBookingDto;
     const branch = await this.branchesService.findOneById(branchId, authenticatedUser);
     const { company } = branch;
-    Permission.validateInBooking(company, authenticatedUser, userId, [ UserRole.RECEPTIONIST, UserRole.ADMIN ]);
+    Permission.validate(company, authenticatedUser, userId, [ UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     const user = await this.findUserInCompany(userId, company.id);
     const specialist = await this.findSpecialistInBranch(specialistId, branchId);
     const services = await this.findServicesInBranch(servicesIds, branchId);
@@ -72,7 +72,7 @@ export class BookingsService {
     const { company } = authenticatedUser;
     const specialist = await this.findSpecialistInBranch(specialistId, branchId);
     const { user } = specialist;
-    Permission.validateInBooking(company, authenticatedUser, user.id, [ UserRole.RECEPTIONIST, UserRole.ADMIN ]);
+    Permission.validate(company, authenticatedUser, user.id, [ UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     const query: BookingQuery = { branch: { id: branchId }, specialist: { id: specialistId } };
     return this.getPaginationBooking(query, paginationDto);
   }
@@ -80,7 +80,7 @@ export class BookingsService {
   async findAllByUserId(userId: string, paginationDto: PaginationDto, authenticatedUser: User) {
     const { company } = authenticatedUser;
     await this.findUserInCompany(userId, company.id);
-    Permission.validateInBooking(company, authenticatedUser, userId, []);
+    Permission.validate(company, authenticatedUser, userId, []);
     const query: BookingQuery = { user: { id: userId } };
     return this.getPaginationBooking(query, paginationDto);
   }
@@ -94,7 +94,7 @@ export class BookingsService {
   async changeStatus(branchId: string, bookingId: string, status: AppointmentStatus, authenticatedUser: User) {
     const booking = await this.findOneById(branchId, bookingId, authenticatedUser);
     const { user, branch } = booking;
-    Permission.validateInBooking(branch.company, authenticatedUser, user.id, [ UserRole.RECEPTIONIST, UserRole.ADMIN ]);
+    Permission.validate(branch.company, authenticatedUser, user.id, [ UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     booking.status = status;
     await this.bookingRepository.save(booking);
     return BookingResponse.get(booking);

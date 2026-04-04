@@ -8,6 +8,7 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { DbException, Permission } from 'src/common/helpers';
 import { PaginationUserResponseDto, UpdateUserDto, UserResponseDto } from './dto';
 import { User } from './entities/user.entity';
+import { UserRole } from 'src/common/enums';
 
 @Injectable()
 export class UsersService {
@@ -22,7 +23,7 @@ export class UsersService {
 
   async findAll(companySlug: string, paginationDto: PaginationDto, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
-    Permission.validateInUser(company, authenticatedUser, '');
+    Permission.validate(company, authenticatedUser, '', [ UserRole.ADMIN ]);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ users, total ] = await this.userRepository.findAndCount({
       where: { company: { id: company.id }, isActive: true },
@@ -35,14 +36,14 @@ export class UsersService {
 
   async findOneUserResponse(companySlug: string, userId: string, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
-    Permission.validateInUser(company, authenticatedUser, userId);
+    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     const user = await this.findOne(company.id, userId);
     return this.getUserResponseDto(user);
   }
 
   async update(companySlug: string, userId: string, updateUserDto: UpdateUserDto, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
-    Permission.validateInUser(company, authenticatedUser, userId);
+    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     const user = await this.findOne(company.id, userId);
 
     if(updateUserDto.password) {
@@ -63,7 +64,7 @@ export class UsersService {
 
   async remove(companySlug: string, userId: string, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
-    Permission.validateInUser(company, authenticatedUser, userId);
+    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     const userFound = await this.findOne(company.id, userId);
     userFound.isActive = false;
     await this.userRepository.save(userFound);

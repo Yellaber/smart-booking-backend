@@ -8,7 +8,7 @@ const messageForbidden = 'User does not have permission to access this resource.
 const messageCompany = 'User must belong to the same company';
 
 export class Permission {
-  static validateInBooking(company: Company, authenticatedUser: User, userId: string, allowedRoles: UserRole[]) {
+  static validate(company: Company, authenticatedUser: User, userId: string, allowedRoles: UserRole[]) {
     if(authenticatedUser.roles.includes(UserRole.SUPER_USER)) return;
 
     const { company: companyAuthenticatedUser } = authenticatedUser;
@@ -45,19 +45,5 @@ export class Permission {
   
     if(isDifferentUser)
       throw new ForbiddenException(`${messageForbidden} User must be the same specialist`);
-  }
-
-  static validateInUser(company: Company, authenticatedUser: User, userId: string) {
-    if(authenticatedUser.roles.includes(UserRole.SUPER_USER)) return;
-
-    const { company: companyAuthenticatedUser } = authenticatedUser;
-    const isDifferentCompany = company.id !== companyAuthenticatedUser.id;
-    const isDifferentUser = authenticatedUser.roles.length === 1 && authenticatedUser.id !== userId;
-
-    if(isDifferentCompany)
-      throw new ForbiddenException(`${messageForbidden} ${messageCompany}`);
-
-    if(isDifferentUser)
-      throw new ForbiddenException(`${messageForbidden} User must be the same authenticated user`);
   }
 }

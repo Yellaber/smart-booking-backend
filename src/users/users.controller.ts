@@ -45,7 +45,7 @@ export class UsersController {
   }
 
   @Patch(':userId')
-  @Auth(UserRole.CUSTOMER, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'companySlug', description: 'Company slug.' })
   @ApiParam({ name: 'userId', description: 'ID of the user to update (UUID).' })
   @ApiResponse({ status: 200, description: 'User updated successfully.', type: UserResponseDto })
@@ -63,7 +63,7 @@ export class UsersController {
   }
 
   @Delete(':userId')
-  @Auth(UserRole.CUSTOMER, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'companySlug', description: 'Company slug.' })
   @ApiParam({ name: 'userId', description: 'ID of the user to remove (UUID).' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
