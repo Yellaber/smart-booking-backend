@@ -2,14 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BranchesService } from 'src/branches/branches.service';
-import { Branch } from 'src/branches/entities/branch.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { UserRole } from 'src/common/enums';
 import { DbException } from 'src/common/helpers';
 import { User } from 'src/users/entities/user.entity';
-import { CreateServiceDto, PaginationServiceResponseDto, ServiceResponseDto, UpdateServiceDto } from './dto';
+import { CreateServiceDto, UpdateServiceDto } from './dto';
 import { Service } from './entities/service.entity';
-import { ServiceQuery } from './interfaces/service-query.interface';
+import { FormatServiceQuery, ServiceResponse } from './helpers';
 
 @Injectable()
 export class ServicesService {
@@ -28,7 +26,7 @@ export class ServicesService {
     try {
       const service = this.serviceRepository.create({ ...createServiceDto, branch });
       await this.serviceRepository.save(service);
-      return this.getServiceResponse(service);
+      return ServiceResponse.get(service);
     } catch(error) {
       return this.dbException.handle(error);
     }
@@ -37,15 +35,15 @@ export class ServicesService {
   async findAll(branchId: string, paginationDto: PaginationDto, authenticatedUser: User) {
     const { company } = authenticatedUser;
     const branch = await this.branchesService.findOne(company.id, branchId, authenticatedUser);
-    const serviceQuery = this.getServiceQuery(branch, authenticatedUser);
+    const serviceQuery = FormatServiceQuery.get(branch, authenticatedUser);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ services, total ] = await this.serviceRepository.findAndCount({ where: serviceQuery, take: limit, skip: offset });
-    return this.getPaginationServiceResponse(total, services);
+    return ServiceResponse.getPagination(total, services);
   }
 
   async findOneServiceResponse(branchId: string, serviceId: string, authenticatedUser: User) {
     const service = await this.findOne(branchId, serviceId, authenticatedUser);
-    return this.getServiceResponse(service);
+    return ServiceResponse.get(service);
   }
 
   async update(branchId: string, serviceId: string, updateServiceDto: UpdateServiceDto, authenticatedUser: User) {
@@ -54,7 +52,7 @@ export class ServicesService {
 
     try {
       await this.serviceRepository.save(service);
-      return this.getServiceResponse(service);
+      return ServiceResponse.get(service);
     } catch(error) {
       return this.dbException.handle(error);
     }
@@ -75,33 +73,12 @@ export class ServicesService {
   async findOne(branchId: string, serviceId: string, authenticatedUser: User) {
     const { company } = authenticatedUser;
     const branch = await this.branchesService.findOne(company.id, branchId, authenticatedUser);
-    const serviceQuery = this.getServiceQuery(branch, authenticatedUser, serviceId);
+    const serviceQuery = FormatServiceQuery.get(branch, authenticatedUser, serviceId);
     const service = await this.serviceRepository.findOne({ where: serviceQuery, relations: { branch: true } });
 
     if(!service)
       throw new NotFoundException(`Service with '${ serviceId }' not found`);
 
     return service;
-  }
-
-  private getServiceQuery(branch: Branch, authenticatedUser: User, serviceId?: string) {
-    const { id } = branch;
-    let query: ServiceQuery = { branch: { id } };
-      
-    if(serviceId)
-      query = { id: serviceId, ...query };
-  
-    return (authenticatedUser.roles.includes(UserRole.ADMIN) || authenticatedUser.roles.includes(UserRole.SUPER_USER))? 
-      query: { ...query, isActive: true };
-  }
-
-  private getServiceResponse(service: Service): ServiceResponseDto {
-    const { isActive, branch, ...restService } = service;
-    return restService;
-  }
-
-  private getPaginationServiceResponse(total: number, services: Service[]): PaginationServiceResponseDto {
-    const servicesResponse = services.map(this.getServiceResponse);
-    return { total, services: servicesResponse };
   }
 }

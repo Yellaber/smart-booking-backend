@@ -7,7 +7,7 @@ import { CreateCompanyDto } from 'src/companies/dto';
 import { Company } from 'src/companies/entities/company.entity';
 import { RegisterUserDto } from 'src/users/dto';
 import { User } from 'src/users/entities/user.entity';
-import { SetupResponseDto } from './dto/setup-response.dto';
+import { SetupResponse } from './helpers/setup-response.helper';
 
 @Injectable()
 export class SetupService {
@@ -20,7 +20,7 @@ export class SetupService {
     const hasCompanies = await this.countCompanies();
     
     if(hasCompanies)
-      return this.getSetupResponse('Setup has already been completed', false);
+      return SetupResponse.get('Setup has already been completed', false);
     
     const { password, ...restUser } = registerUserDto;
     const company = this.getCreateCompanyDto();
@@ -39,7 +39,7 @@ export class SetupService {
         company: companySetup
       });
       await userRepository.save(userSetup);
-      return this.getSetupResponse('Setup completed successfully', true);
+      return SetupResponse.get('Setup completed successfully', true);
     });
   }
 
@@ -56,9 +56,5 @@ export class SetupService {
       .createQueryBuilder('company')
       .getCount();
     return count > 0;
-  }
-
-  private getSetupResponse(message: string, success: boolean): SetupResponseDto {
-    return { message, success };
   }
 }

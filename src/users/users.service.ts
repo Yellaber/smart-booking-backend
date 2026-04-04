@@ -3,12 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { CompaniesService } from 'src/companies/companies.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { DbException, Permission } from 'src/common/helpers';
-import { PaginationUserResponseDto, UpdateUserDto, UserResponseDto } from './dto';
-import { User } from './entities/user.entity';
 import { UserRole } from 'src/common/enums';
+import { DbException, Permission } from 'src/common/helpers';
+import { CompaniesService } from 'src/companies/companies.service';
+import { UpdateUserDto } from './dto';
+import { User } from './entities/user.entity';
+import { UserResponse } from './helpers/user-response.helper';
 
 @Injectable()
 export class UsersService {
@@ -31,14 +32,14 @@ export class UsersService {
       skip: offset
     });
 
-    return this.getPaginationUserResponseDto(total, users);
+    return UserResponse.getPagination(total, users);
   }
 
   async findOneUserResponse(companySlug: string, userId: string, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
     Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     const user = await this.findOne(company.id, userId);
-    return this.getUserResponseDto(user);
+    return UserResponse.get(user);
   }
 
   async update(companySlug: string, userId: string, updateUserDto: UpdateUserDto, authenticatedUser: User) {
@@ -56,7 +57,7 @@ export class UsersService {
 
     try {
       await this.userRepository.save(userToUpdate);
-      return this.getUserResponseDto(userToUpdate);
+      return UserResponse.get(userToUpdate);
     } catch(error) {
       return this.dbException.handle(error);
     }
@@ -78,15 +79,5 @@ export class UsersService {
       throw new NotFoundException(`User with '${ userId }' not found`);
 
     return user;
-  }
-
-  private getUserResponseDto(user: User): UserResponseDto {
-    const { password, company, bookings, isActive, ...userResponse } = user;
-    return userResponse;
-  }
-
-  private getPaginationUserResponseDto(total: number, users: User[]): PaginationUserResponseDto {
-    const usersResponse = users.map(user => this.getUserResponseDto(user));
-    return { total, users: usersResponse };
   }
 }

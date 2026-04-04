@@ -6,8 +6,9 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { CompaniesService } from 'src/companies/companies.service';
 import { DbException, Permission } from 'src/common/helpers';
 import { User } from 'src/users/entities/user.entity';
-import { BranchResponseDto, CreateBranchDto, PaginationBranchResponseDto, UpdateBranchDto } from './dto';
+import { CreateBranchDto, UpdateBranchDto } from './dto';
 import { Branch } from './entities/branch.entity';
+import { BranchResponse } from './helpers/branch-response.helper';
 
 @Injectable()
 export class BranchesService {
@@ -26,7 +27,7 @@ export class BranchesService {
     try {
       const branch = this.branchRepository.create({ ...createBranchDto, company });
       await this.branchRepository.save(branch);
-      return this.getBranchResponse(branch);
+      return BranchResponse.get(branch);
     } catch(error) {
       return this.dbException.handle(error);
     }
@@ -42,12 +43,12 @@ export class BranchesService {
       skip: offset
     });
 
-    return this.getPaginationBranchResponse(total, branches);
+    return BranchResponse.getPagination(total, branches);
   }
 
   async findOneBranchResponse(companyTerm: string, branchId: string, authenticatedUser: User) {
     const branch = await this.findOne(companyTerm, branchId, authenticatedUser);
-    return this.getBranchResponse(branch);
+    return BranchResponse.get(branch);
   }
 
   async update(companySlug: string, branchId: string, updateBranchDto: UpdateBranchDto, authenticatedUser: User) {
@@ -56,7 +57,7 @@ export class BranchesService {
 
     try {
       await this.branchRepository.save(branch);
-      return this.getBranchResponse(branch);
+      return BranchResponse.get(branch);
     } catch(error) {
       return this.dbException.handle(error);
     }
@@ -90,15 +91,5 @@ export class BranchesService {
 
     Permission.validateInCompany(branch.company, authenticatedUser);
     return branch;
-  }
-
-  private getBranchResponse(branch: Branch): BranchResponseDto {
-    const { company, isActive, ...restBranch } = branch;
-    return restBranch;
-  }
-
-  private getPaginationBranchResponse(total: number, branches: Branch[]): PaginationBranchResponseDto {
-    const branchesResponse = branches.map(this.getBranchResponse);
-    return { total, branches: branchesResponse };
   }
 }
