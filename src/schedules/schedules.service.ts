@@ -28,7 +28,7 @@ export class SchedulesService {
     const specialist = await this.specialistsService.findOneById(specialistId);
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
-    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
+    Permission.validateSpecialist(branchFound.company, authenticatedUser, specialist);
     await this.isScheduleConflict(specialistId, createScheduleDto);
 
     try {
@@ -44,7 +44,7 @@ export class SchedulesService {
     const specialist = await this.specialistsService.findOneById(specialistId);
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
-    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
+    Permission.validateSpecialist(branchFound.company, authenticatedUser, specialist);
     const where = FormatScheduleQuery.get(specialistId);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ schedules, total ] = await this.scheduleRepository.findAndCount({ where, take: limit, skip: offset });
@@ -67,7 +67,7 @@ export class SchedulesService {
     const specialist = await this.specialistsService.findOneById(specialistId);
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
-    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
+    Permission.validateSpecialist(branchFound.company, authenticatedUser, specialist);
     const where = FormatScheduleQuery.get(specialistId, scheduleId);
     const schedule = await this.scheduleRepository.findOne({ where, relations: { specialist: true } });
 

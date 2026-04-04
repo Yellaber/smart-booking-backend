@@ -32,7 +32,7 @@ export class ScheduleExceptionsService {
     const specialist = await this.specialistsService.findOneById(specialistId);
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
-    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
+    Permission.validateSpecialist(branchFound.company, authenticatedUser, specialist);
     const scheduleException = await this.saveScheduleException(specialist, createScheduleExceptionDto);
     return scheduleException;
   }
@@ -41,7 +41,7 @@ export class ScheduleExceptionsService {
     const specialist = await this.specialistsService.findOneById(specialistId);
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
-    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
+    Permission.validateSpecialist(branchFound.company, authenticatedUser, specialist);
     const where = FormatScheduleQuery.get(specialistId);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ scheduleExceptions, total ] = await this.scheduleExceptionRepository.findAndCount({ where, take: limit, skip: offset });
@@ -64,7 +64,7 @@ export class ScheduleExceptionsService {
     const specialist = await this.specialistsService.findOneById(specialistId);
     const { branch } = specialist;
     const branchFound = await this.findBranchById(branch.id);
-    Permission.validateInSchedules(branchFound.company, authenticatedUser, specialist);
+    Permission.validateSpecialist(branchFound.company, authenticatedUser, specialist);
     const where = FormatScheduleQuery.get(specialistId, scheduleExceptionId);
     const scheduleException = await this.scheduleExceptionRepository.findOne({ where, relations: { specialist: true } });
     
