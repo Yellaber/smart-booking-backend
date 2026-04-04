@@ -7,9 +7,10 @@ import { Repository } from 'typeorm';
 import { DbException } from 'src/common/helpers';
 import { CompaniesService } from 'src/companies/companies.service';
 import { Company } from 'src/companies/entities/company.entity';
-import { RegisterUserDto, UserResponseDto } from 'src/users/dto';
+import { RegisterUserDto } from 'src/users/dto';
 import { User } from 'src/users/entities/user.entity';
-import { LoginResponseDto, LoginUserDto, RegisterResponseDto } from './dto';
+import { LoginUserDto } from './dto';
+import { AuthResponse } from './helpers/auth-response.helper';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -35,7 +36,8 @@ export class AuthService {
       const user = this.userRepository.create({ ...restRegisterUserDto, password, company });
       await this.userRepository.save(user);
       const jwtPayload = { userId: user.id, companyId: company.id };
-      return this.getRegisterResponseDto(user, jwtPayload);
+      const token = this.getJwtToken(jwtPayload);
+      return AuthResponse.getRegister(user, token);
     } catch(error) {
       throw this.dbException.handle(error);
     }
@@ -50,7 +52,8 @@ export class AuthService {
       throw new UnauthorizedException('Credentials are not valid');
 
     const jwtPayload = { userId: user.id, companyId: company.id };
-    return this.getLoginResponseDto(user, jwtPayload);
+    const token = this.getJwtToken(jwtPayload);
+    return AuthResponse.getLogin(user, token);
   }
 
   async refresh(companySlug: string, authenticatedUser: User) {
@@ -61,7 +64,8 @@ export class AuthService {
       throw new ForbiddenException('User does not have permission to access this resource. User must belong to the same company');
 
     const jwtPayload = { userId: userAuthenticatedId, companyId: company.id };
-    return this.getLoginResponseDto(authenticatedUser, jwtPayload);
+    const token = this.getJwtToken(jwtPayload);
+    return AuthResponse.getLogin(authenticatedUser, token);
   }
 
   private async getUserByUserNameAndCompany(company: Company, userName: string) {
@@ -73,23 +77,6 @@ export class AuthService {
       throw new UnauthorizedException('Credentials are not valid');
 
     return user;
-  }
-
-  private getUserResponseDto(authenticatedUser: User): UserResponseDto {
-    const { password, company, bookings, ...userResponse } = authenticatedUser;
-    return userResponse;
-  }
-  
-  private getRegisterResponseDto(authenticatedUser: User, jwtPayload: JwtPayload): RegisterResponseDto {
-    const userResponse = this.getUserResponseDto(authenticatedUser);
-    const token = this.getJwtToken(jwtPayload);
-    return { user: userResponse, token };
-  }
-  
-  private getLoginResponseDto(authenticatedUser: User, jwtPayload: JwtPayload): LoginResponseDto {
-    const { userName } = authenticatedUser;
-    const token = this.getJwtToken(jwtPayload);
-    return { userName, token };
   }
 
   private getJwtToken(jwtPayload: JwtPayload) {
