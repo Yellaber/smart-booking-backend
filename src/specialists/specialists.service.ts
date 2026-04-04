@@ -4,7 +4,7 @@ import { In, Repository } from 'typeorm';
 import { BranchesService } from 'src/branches/branches.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
-import { DbException } from 'src/common/helpers/db-exception.helper';
+import { DbException, Permission } from 'src/common/helpers';
 import { Service } from 'src/services/entities/service.entity';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
@@ -65,7 +65,7 @@ export class SpecialistsService {
   async findOneById(specialistId: string) {
     const specialist = await this.specialistRepository.findOne({
       where: { id: specialistId, isActive: true },
-      relations: { branch: true, user: true }
+      relations: { branch: { company: true }, user: true }
     });
 
     if(!specialist)
@@ -77,7 +77,7 @@ export class SpecialistsService {
   async findOneByUserId(authenticatedUser: User) {
     const specialist = await this.specialistRepository.findOne({
       where: { user: { id: authenticatedUser.id }, isActive: true },
-      relations: { branch: true }
+      relations: { branch: { company: true } }
     });
 
     if(!specialist)
@@ -87,10 +87,9 @@ export class SpecialistsService {
   }
 
   async findOneSpecialistResponse(branchId: string, specialistId: string, authenticatedUser: User) {
-    if(authenticatedUser.roles.includes(UserRole.SPECIALIST) && authenticatedUser.id !== specialistId)
-      throw new ForbiddenException('User does not have permission to access this resource. Only specialists can access their own data.');
-
     const specialist = await this.findOne(branchId, specialistId, authenticatedUser);
+    const { company } = specialist.branch;
+    Permission.validateSpecialist(company, authenticatedUser, specialist);
     return SpecialistResponse.get(specialist);
   }
 
@@ -105,7 +104,7 @@ export class SpecialistsService {
     const { slug: companySlug } = authenticatedUser.company;
     const branch = await this.branchesService.findOne(companySlug, branchId, authenticatedUser);
     const specialistQuery = FormatSpecialistQuery.get(branch, authenticatedUser, specialistId);
-    const specialist = await this.specialistRepository.findOne({ where: specialistQuery, relations: { user: true } });
+    const specialist = await this.specialistRepository.findOne({ where: specialistQuery, relations: { user: true, branch: { company: true } } });
 
     if(!specialist)
       throw new NotFoundException(`Specialist with '${ specialistId }' not found in branch '${ branchId }'`);
@@ -114,9 +113,10 @@ export class SpecialistsService {
   }
 
   private async findServicesInBranch(servicesIds: string[], branchId: string) {
-    const services = await this.serviceRepository.findBy({ id: In(servicesIds), branch: { id: branchId }, isActive: true });
+    const uniqueServiceIds = [ ...new Set(servicesIds) ];
+    const services = await this.serviceRepository.findBy({ id: In(uniqueServiceIds), branch: { id: branchId }, isActive: true });
   
-    if(services.length !== servicesIds.length)
+    if(services.length !== uniqueServiceIds.length)
       throw new NotFoundException(`One or more services not found in branch '${ branchId }'`);
   
     return services;

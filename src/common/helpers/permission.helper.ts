@@ -32,7 +32,7 @@ export class Permission {
       throw new ForbiddenException(`${messageForbidden} ${messageCompany}`);
   }
 
-  static validateInSchedules(company: Company, authenticatedUser: User, specialist: Specialist) {
+  static validateSpecialist(company: Company, authenticatedUser: User, specialist: Specialist) {
     if(authenticatedUser.roles.includes(UserRole.SUPER_USER)) return;
   
     const { company: companyAuthenticatedUser } = authenticatedUser;
