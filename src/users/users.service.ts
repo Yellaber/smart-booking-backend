@@ -1,15 +1,14 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { CompaniesService } from 'src/companies/companies.service';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { UserRole } from 'src/common/enums';
-import { DbException } from 'src/common/helpers/db-exception.helper';
-import { Company } from 'src/companies/entities/company.entity';
+import { DbException, Permission } from 'src/common/helpers';
 import { PaginationUserResponseDto, UpdateUserDto, UserResponseDto } from './dto';
 import { User } from './entities/user.entity';
+import { UserRole } from 'src/common/enums';
 
 @Injectable()
 export class UsersService {
@@ -24,7 +23,7 @@ export class UsersService {
 
   async findAll(companySlug: string, paginationDto: PaginationDto, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
-    this.validatePermission(company, authenticatedUser, '', [ UserRole.ADMIN ]);
+    Permission.validate(company, authenticatedUser, '', [ UserRole.ADMIN ]);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ users, total ] = await this.userRepository.findAndCount({
       where: { company: { id: company.id }, isActive: true },
@@ -36,16 +35,15 @@ export class UsersService {
   }
 
   async findOneUserResponse(companySlug: string, userId: string, authenticatedUser: User) {
-    const allowedRoles = [ UserRole.ADMIN, UserRole.SPECIALIST, UserRole.RECEPTIONIST ];
     const company = await this.companiesService.findOne(companySlug);
-    this.validatePermission(company, authenticatedUser, userId, allowedRoles);
+    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     const user = await this.findOne(company.id, userId);
     return this.getUserResponseDto(user);
   }
 
   async update(companySlug: string, userId: string, updateUserDto: UpdateUserDto, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
-    this.validatePermission(company, authenticatedUser, userId, [ UserRole.ADMIN ]);
+    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     const user = await this.findOne(company.id, userId);
 
     if(updateUserDto.password) {
@@ -66,7 +64,7 @@ export class UsersService {
 
   async remove(companySlug: string, userId: string, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
-    this.validatePermission(company, authenticatedUser, userId, [ UserRole.ADMIN ]);
+    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     const userFound = await this.findOne(company.id, userId);
     userFound.isActive = false;
     await this.userRepository.save(userFound);
@@ -82,24 +80,8 @@ export class UsersService {
     return user;
   }
 
-  private validatePermission(company: Company, authenticatedUser: User, userId: string, allowedRoles: UserRole[]) {
-    if(authenticatedUser.roles.includes(UserRole.SUPER_USER)) return;
-
-    const { id: companyId } = company;
-    const { id: companyIdAuthenticatedUser } = authenticatedUser.company;
-    const isSameCompany = companyId === companyIdAuthenticatedUser;
-    const isSameUser = authenticatedUser.id === userId;
-    const hasAllowedRole = authenticatedUser.roles.some(role => allowedRoles.includes(role));
-
-    if(isSameCompany && hasAllowedRole) return;
-
-    if(isSameCompany && isSameUser) return;
-
-    throw new ForbiddenException('User does not have permission to access this resource');
-  }
-
   private getUserResponseDto(user: User): UserResponseDto {
-    const { password, company, isActive, ...userResponse }  = user;
+    const { password, company, bookings, isActive, ...userResponse } = user;
     return userResponse;
   }
 

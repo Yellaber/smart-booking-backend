@@ -27,23 +27,8 @@ export class ScheduleExceptionsController {
     return this.scheduleExceptionsService.create(specialistId, createScheduleExceptionDto, authenticatedUser);
   }
 
-  @Get('me/schedule-exceptions')
-  @Auth(UserRole.SPECIALIST)
-  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of schedule exceptions to return.' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of schedule exceptions to skip.' })
-  @ApiResponse({ status: 200, description: 'Schedule exceptions retrieved successfully for the authenticated specialist.', 
-                 type: PaginationScheduleExceptionResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  findAllByMe(
-    @Query() paginationDto: PaginationDto,
-    @GetUser() authenticatedUser: User
-  ) {
-    return this.scheduleExceptionsService.findAllByMe(paginationDto, authenticatedUser);
-  }
-
   @Get(':specialistId/schedule-exceptions')
-  @Auth(UserRole.CUSTOMER, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'specialistId', description: 'ID of the specialist (UUID).' })
   @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of schedule exceptions to return.' })
   @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of schedule exceptions to skip.' })
@@ -60,7 +45,7 @@ export class ScheduleExceptionsController {
   }
 
   @Get(':specialistId/schedule-exceptions/:scheduleExceptionId')
-  @Auth(UserRole.CUSTOMER, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'specialistId', description: 'ID of the specialist (UUID).' })
   @ApiParam({ name: 'scheduleExceptionId', description: 'ID of the schedule exception to retrieve (UUID).' })
   @ApiResponse({ status: 200, description: 'Schedule exception retrieved successfully.', type: ScheduleExceptionResponseDto })
@@ -79,7 +64,7 @@ export class ScheduleExceptionsController {
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'specialistId', description: 'ID of the specialist (UUID).' })
   @ApiParam({ name: 'scheduleExceptionId', description: 'ID of the schedule exception to remove (UUID).' })
-  @ApiResponse({ status: 200, description: 'Schedule exception removed successfully.' })
+  @ApiResponse({ status: 200, description: 'Schedule exception removed successfully.', type: ScheduleExceptionResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Specialist or schedule exception not found.' })

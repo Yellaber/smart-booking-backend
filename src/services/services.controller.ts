@@ -13,7 +13,7 @@ export class ServicesController {
 
   @Post()
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch.' })
+  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiResponse({ status: 201, description: 'The service has been created successfully.', type: ServiceResponseDto })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
@@ -28,8 +28,8 @@ export class ServicesController {
   }
 
   @Get()
-  @Auth()
-  @ApiParam({ name: 'branchId', description: 'ID of the branch.' })
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of services to return.' })
   @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of services to skip.' })
   @ApiResponse({ status: 200, description: 'Services retrieved successfully.', type: PaginationServiceResponseDto })
@@ -45,9 +45,9 @@ export class ServicesController {
   }
 
   @Get(':serviceId')
-  @Auth()
-  @ApiParam({ name: 'branchId', description: 'ID of the branch.' })
-  @ApiParam({ name: 'serviceId', description: 'ID of the service to retrieve.' })
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
+  @ApiParam({ name: 'serviceId', description: 'ID of the service to retrieve (UUID).' })
   @ApiResponse({ status: 200, description: 'Service retrieved successfully.', type: ServiceResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
@@ -62,8 +62,8 @@ export class ServicesController {
 
   @Patch(':serviceId')
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch.' })
-  @ApiParam({ name: 'serviceId', description: 'ID of the service to update.' })
+  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
+  @ApiParam({ name: 'serviceId', description: 'ID of the service to update (UUID).' })
   @ApiResponse({ status: 200, description: 'Service updated successfully.', type: ServiceResponseDto })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
@@ -80,8 +80,8 @@ export class ServicesController {
 
   @Patch(':serviceId/status')
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch.' })
-  @ApiParam({ name: 'serviceId', description: 'ID of the service to update.' })
+  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
+  @ApiParam({ name: 'serviceId', description: 'ID of the service to update (UUID).' })
   @ApiResponse({ status: 200, description: 'Status of the service updated successfully.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
@@ -96,8 +96,8 @@ export class ServicesController {
 
   @Delete(':serviceId')
   @Auth(UserRole.ADMIN, UserRole.SUPER_USER)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch.' })
-  @ApiParam({ name: 'serviceId', description: 'ID of the service to delete.' })
+  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
+  @ApiParam({ name: 'serviceId', description: 'ID of the service to delete (UUID).' })
   @ApiResponse({ status: 200, description: 'Service deleted successfully.' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })

@@ -11,18 +11,25 @@ export class BookingResponseDto {
     id: string;
 
     @ApiProperty({
-        example: '345e6789-c55b-12d3-a678-441114574082',
-        description: 'The unique identifier of the user who made the booking.',
-        format: 'uuid'
+        example: 'Downtown Branch',
+        description: 'The branch where the booking is made.',
+        format: 'string'
     })
-    userId: string;
+    branch: string;
 
     @ApiProperty({
-        example: '456e7890-e31c-25d6-a891-623314174212',
-        description: 'The unique identifier of the specialist for the booking.',
-        format: 'uuid'
+        example: 'john doe',
+        description: 'The name of the user who made the booking.',
+        format: 'string'
     })
-    specialistId: string;
+    user: string;
+
+    @ApiProperty({
+        example: 'jane smith',
+        description: 'The name of the specialist for the booking.',
+        format: 'string'
+    })
+    specialist: string;
 
     @ApiProperty({
         example: [

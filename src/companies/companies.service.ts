@@ -1,10 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
+import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { UserRole } from 'src/common/enums';
-import { DbException } from 'src/common/helpers/db-exception.helper';
+import { DbException, Permission } from 'src/common/helpers';
 import { User } from 'src/users/entities/user.entity';
 import { CompanyResponseDto, CreateCompanyDto, PaginationCompanyResponseDto, UpdateCompanyDto } from './dto';
 import { Company } from './entities/company.entity';
@@ -41,13 +40,13 @@ export class CompaniesService {
 
   async findOneCompanyResponse(companyTerm: string, authenticatedUser: User) {
     const company = await this.findOne(companyTerm);
-    this.validatePermission(company, authenticatedUser);
+    Permission.validateInCompany(company, authenticatedUser);
     return this.getCompanyResponseDto(company);
   }
 
   async update(companyId: string, updateCompanyDto: UpdateCompanyDto, authenticatedUser: User) {
     const companyFound = await this.findOne(companyId);
-    this.validatePermission(companyFound, authenticatedUser);
+    Permission.validateInCompany(companyFound, authenticatedUser);
     const company = this.companyRepository.merge(companyFound, updateCompanyDto);
 
     try {
@@ -72,15 +71,6 @@ export class CompaniesService {
       throw new NotFoundException(`Company with '${ companyTerm }' not found`);
 
     return company;
-  }
-
-  private validatePermission(company: Company, user: User) {
-    if(user.roles.includes(UserRole.SUPER_USER)) return;
-    
-    const { company: companyUser } = user;
-    
-    if(company.id !== companyUser.id)
-      throw new ForbiddenException('User does not have permission to access this resource');
   }
 
   private getCompanyResponseDto(company: Company): CompanyResponseDto {

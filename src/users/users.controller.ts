@@ -3,9 +3,9 @@ import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { UserRole } from 'src/common/enums';
+import { PaginationUserResponseDto, UpdateUserDto, UserResponseDto } from './dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
-import { PaginationUserResponseDto, UpdateUserDto, UserResponseDto } from './dto';
 
 @Controller('companies/:companySlug/users')
 export class UsersController {
@@ -29,7 +29,7 @@ export class UsersController {
   }
 
   @Get(':userId')
-  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'companySlug', description: 'Company slug.' })
   @ApiParam({ name: 'userId', description: 'ID of the user to retrieve (UUID).' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully.', type: UserResponseDto })
@@ -45,7 +45,7 @@ export class UsersController {
   }
 
   @Patch(':userId')
-  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'companySlug', description: 'Company slug.' })
   @ApiParam({ name: 'userId', description: 'ID of the user to update (UUID).' })
   @ApiResponse({ status: 200, description: 'User updated successfully.', type: UserResponseDto })
@@ -63,7 +63,7 @@ export class UsersController {
   }
 
   @Delete(':userId')
-  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'companySlug', description: 'Company slug.' })
   @ApiParam({ name: 'userId', description: 'ID of the user to remove (UUID).' })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })

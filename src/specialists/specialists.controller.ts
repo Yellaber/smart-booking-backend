@@ -44,7 +44,7 @@ export class SpecialistsController {
   }
 
   @Get(':specialistId')
-  @Auth()
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiResponse({ status: 200, description: 'ID of the specialist to retrieve (UUID).', type: SpecialistResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })

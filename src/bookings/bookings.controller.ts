@@ -8,12 +8,12 @@ import { BookingsService } from './bookings.service';
 import { BookingResponseDto, CreateBookingDto, PaginationBookingResponseDto } from './dto';
 import { ParseBookingStatusPipe } from './pipes/parse-booking-status/parse-booking-status.pipe';
 
-@Controller('branches/:branchId')
+@Controller()
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
-  @Post('bookings')
-  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
+  @Post('branches/:branchId/bookings')
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST , UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiResponse({ status: 201, description: 'The booking has been created successfully.', type: BookingResponseDto })
   @ApiResponse({ status: 400, description: 'Bad request.' })
@@ -28,7 +28,7 @@ export class BookingsController {
     return this.bookingsService.create(branchId, createBookingDto, authenticatedUser);
   }
 
-  @Get('bookings')
+  @Get('branches/:branchId/bookings')
   @Auth(UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of bookings to return.' })
@@ -42,10 +42,10 @@ export class BookingsController {
     @Query() paginationDto: PaginationDto,
     @GetUser() authenticatedUser: User
   ) {
-    return this.bookingsService.findAllByBranch(branchId, paginationDto, authenticatedUser);
+    return this.bookingsService.findAllByBranchId(branchId, paginationDto, authenticatedUser);
   }
 
-  @Get('bookings/status/:status')
+  @Get('branches/:branchId/bookings/status/:status')
   @Auth(UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiParam({ name: 'status', description: 'Status of the bookings to filter by.', enum: AppointmentStatus })
@@ -61,83 +61,11 @@ export class BookingsController {
     @Query() paginationDto: PaginationDto,
     @GetUser() authenticatedUser: User
   ) {
-    return this.bookingsService.findAllByBranch(branchId, paginationDto, authenticatedUser, status);
+    return this.bookingsService.findAllByBranchId(branchId, paginationDto, authenticatedUser, status);
   }
 
-  @Get('customers/bookings')
-  @Auth(UserRole.CUSTOMER)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of bookings to return.' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of bookings to skip.' })
-  @ApiResponse({ status: 200, description: 'Bookings retrieved successfully.', type: PaginationBookingResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  @ApiResponse({ status: 404, description: 'Not found. Branch not found.' })
-  findAllByMeCustomer(
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Query() paginationDto: PaginationDto,
-    @GetUser() authenticatedUser: User
-  ) {
-    return this.bookingsService.findAllByMeCustomer(branchId, paginationDto, authenticatedUser);
-  }
-
-  @Get('customers/bookings/:status')
-  @Auth(UserRole.CUSTOMER)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
-  @ApiParam({ name: 'status', description: 'Status of the bookings to filter by.', enum: AppointmentStatus })
-  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of bookings to return.' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of bookings to skip.' })
-  @ApiResponse({ status: 200, description: 'Bookings retrieved successfully.', type: PaginationBookingResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  @ApiResponse({ status: 404, description: 'Not found. Branch not found.' })
-  findAllByMeCustomerAndStatus(
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Param('status', ParseBookingStatusPipe) status: AppointmentStatus,
-    @Query() paginationDto: PaginationDto,
-    @GetUser() authenticatedUser: User
-  ) {
-    return this.bookingsService.findAllByMeCustomer(branchId, paginationDto, authenticatedUser, status);
-  }
-
-  @Get('specialists/bookings')
-  @Auth(UserRole.SPECIALIST)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of bookings to return.' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of bookings to skip.' })
-  @ApiResponse({ status: 200, description: 'Bookings retrieved successfully.', type: PaginationBookingResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  @ApiResponse({ status: 404, description: 'Not found. Branch not found.' })
-  findAllByMeSpecialist(
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Query() paginationDto: PaginationDto,
-    @GetUser() authenticatedUser: User
-  ) {
-    return this.bookingsService.findAllByMeSpecialist(branchId, paginationDto, authenticatedUser);
-  }
-
-  @Get('specialists/bookings/status/:status')
-  @Auth(UserRole.SPECIALIST)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
-  @ApiParam({ name: 'status', description: 'Status of the bookings to filter by.', enum: AppointmentStatus })
-  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of bookings to return.' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of bookings to skip.' })
-  @ApiResponse({ status: 200, description: 'Bookings retrieved successfully.', type: PaginationBookingResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
-  @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  @ApiResponse({ status: 404, description: 'Not found. Branch not found.' })
-  findAllByMeSpecialistAndStatus(
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Param('status', ParseBookingStatusPipe) status: AppointmentStatus,
-    @Query() paginationDto: PaginationDto,
-    @GetUser() authenticatedUser: User
-  ) {
-    return this.bookingsService.findAllByMeSpecialist(branchId, paginationDto, authenticatedUser, status);
-  }
-
-  @Get('specialists/:specialistId/bookings')
-  @Auth(UserRole.CUSTOMER, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @Get('branches/:branchId/specialists/:specialistId/bookings')
+  @Auth(UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiParam({ name: 'specialistId', description: 'ID of the specialist (UUID).' })
   @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of bookings to return.' })
@@ -155,8 +83,8 @@ export class BookingsController {
     return this.bookingsService.findAllBySpecialistId(branchId, specialistId, paginationDto, authenticatedUser);
   }
 
-  @Get('bookings/:bookingId')
-  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
+  @Get('branches/:branchId/bookings/:bookingId')
+  @Auth(UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
   @ApiParam({ name: 'bookingId', description: 'ID of the booking to retrieve (UUID).' })
   @ApiResponse({ status: 200, description: 'Booking retrieved successfully.', type: BookingResponseDto })
@@ -171,35 +99,38 @@ export class BookingsController {
     return this.bookingsService.findOneBookingResponseById(branchId, bookingId, authenticatedUser);
   }
 
-  @Patch('bookings/:bookingId/cancel')
-  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
+  @Patch('branches/:branchId/bookings/:bookingId/status/:status')
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
   @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
-  @ApiParam({ name: 'bookingId', description: 'ID of the booking to cancel (UUID).' })
-  @ApiResponse({ status: 200, description: 'Booking canceled successfully.', type: BookingResponseDto })
+  @ApiParam({ name: 'bookingId', description: 'ID of the booking to update (UUID).' })
+  @ApiParam({ name: 'status', description: 'New status for the booking.', enum: AppointmentStatus })
+  @ApiResponse({ status: 200, description: 'Booking updated successfully.', type: BookingResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Branch or booking not found.' })
-  cancel(
+  changeStatus(
     @Param('branchId', ParseUUIDPipe) branchId: string,
     @Param('bookingId', ParseUUIDPipe) bookingId: string,
+    @Param('status', ParseBookingStatusPipe) status: AppointmentStatus,
     @GetUser() authenticatedUser: User
   ) {
-    return this.bookingsService.changeStatus(branchId, bookingId, AppointmentStatus.CANCELED, authenticatedUser);
+    return this.bookingsService.changeStatus(branchId, bookingId, status, authenticatedUser);
   }
 
-  @Patch('bookings/:bookingId/complete')
-  @Auth(UserRole.CUSTOMER, UserRole.SUPER_USER)
-  @ApiParam({ name: 'branchId', description: 'ID of the branch (UUID).' })
-  @ApiParam({ name: 'bookingId', description: 'ID of the booking to complete (UUID).' })
-  @ApiResponse({ status: 200, description: 'Booking completed successfully.', type: BookingResponseDto })
+  @Get('users/:userId/bookings')
+  @Auth(UserRole.CUSTOMER, UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN, UserRole.SUPER_USER)
+  @ApiParam({ name: 'userId', description: 'ID of the user (UUID).' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, default: 10, description: 'Number of bookings to return.' })
+  @ApiQuery({ name: 'offset', required: false, type: Number, default: 0, description: 'Number of bookings to skip.' })
+  @ApiResponse({ status: 200, description: 'Bookings retrieved successfully.', type: PaginationBookingResponseDto })
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
-  @ApiResponse({ status: 404, description: 'Not found. Branch or booking not found.' })
-  complete(
-    @Param('branchId', ParseUUIDPipe) branchId: string,
-    @Param('bookingId', ParseUUIDPipe) bookingId: string,
+  @ApiResponse({ status: 404, description: 'Not found. User not found.' })
+  findAllByUser(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Query() paginationDto: PaginationDto,
     @GetUser() authenticatedUser: User
   ) {
-    return this.bookingsService.changeStatus(branchId, bookingId, AppointmentStatus.COMPLETED, authenticatedUser);
+    return this.bookingsService.findAllByUserId(userId, paginationDto, authenticatedUser);
   }
 }
