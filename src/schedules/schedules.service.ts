@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { Branch } from 'src/branches/entities/branch.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { DbException, FormatScheduleQuery, HandlerDate, Permission } from 'src/common/helpers';
 import { SpecialistsService } from 'src/specialists/specialists.service';
@@ -15,8 +14,6 @@ export class SchedulesService {
   private readonly dbException = new DbException('SchedulesService');
 
   constructor(
-    @InjectRepository(Branch)
-    private readonly branchRepository: Repository<Branch>,
     private readonly dataSource: DataSource,
     @InjectRepository(Schedule)
     private readonly scheduleRepository: Repository<Schedule>,
@@ -26,9 +23,8 @@ export class SchedulesService {
   async create(specialistId: string, createScheduleDto: CreateScheduleDto, authenticatedUser: User) {
     this.validateTimes(createScheduleDto);
     const specialist = await this.specialistsService.findOneById(specialistId);
-    const { branch } = specialist;
-    const branchFound = await this.findBranchById(branch.id);
-    Permission.validateSpecialist(branchFound.company, authenticatedUser, specialist);
+    const { company } = specialist.branch;
+    Permission.validateSpecialist(company, authenticatedUser, specialist);
     await this.isScheduleConflict(specialistId, createScheduleDto);
 
     try {
@@ -42,9 +38,8 @@ export class SchedulesService {
 
   async findAll(specialistId: string, paginationDto: PaginationDto, authenticatedUser: User) {
     const specialist = await this.specialistsService.findOneById(specialistId);
-    const { branch } = specialist;
-    const branchFound = await this.findBranchById(branch.id);
-    Permission.validateSpecialist(branchFound.company, authenticatedUser, specialist);
+    const { company } = specialist.branch;
+    Permission.validateSpecialist(company, authenticatedUser, specialist);
     const where = FormatScheduleQuery.get(specialistId);
     const { limit = 10, offset = 0 } = paginationDto;
     const [ schedules, total ] = await this.scheduleRepository.findAndCount({ where, take: limit, skip: offset });
@@ -65,9 +60,8 @@ export class SchedulesService {
 
   private async findOneById(specialistId: string, scheduleId: string, authenticatedUser: User) {
     const specialist = await this.specialistsService.findOneById(specialistId);
-    const { branch } = specialist;
-    const branchFound = await this.findBranchById(branch.id);
-    Permission.validateSpecialist(branchFound.company, authenticatedUser, specialist);
+    const { company } = specialist.branch;
+    Permission.validateSpecialist(company, authenticatedUser, specialist);
     const where = FormatScheduleQuery.get(specialistId, scheduleId);
     const schedule = await this.scheduleRepository.findOne({ where, relations: { specialist: true } });
 
@@ -90,15 +84,6 @@ export class SchedulesService {
 
     if(schedule)
       throw new BadRequestException('Schedule conflict. The specialist already has a schedule that overlaps with the provided time range on the same day of the week');
-  }
-
-  private async findBranchById(branchId: string) {
-    const branch = await this.branchRepository.findOne({ where: { id: branchId, isActive: true }, relations: { company: true } });
-    
-    if(!branch)
-      throw new NotFoundException(`Branch with '${ branchId }' not found`);
-    
-    return branch;
   }
 
   private validateTimes(createScheduleDto: CreateScheduleDto) {
