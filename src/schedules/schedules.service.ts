@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { DbException, FormatScheduleQuery, Permission } from 'src/common/helpers';
+import { DbException, FormatScheduleQuery, HandlerDate, Permission } from 'src/common/helpers';
 import { SpecialistsService } from 'src/specialists/specialists.service';
 import { User } from 'src/users/entities/user.entity';
 import { CreateScheduleDto } from './dto';
@@ -103,15 +103,10 @@ export class SchedulesService {
 
   private validateTimes(createScheduleDto: CreateScheduleDto) {
     const { startTime, endTime } = createScheduleDto;
-    const startTimeSchedule = this.getTimeToSecond(startTime);
-    const endTimeSchedule = this.getTimeToSecond(endTime);
+    const startTimeSchedule = HandlerDate.transformTimeToSecond(startTime);
+    const endTimeSchedule = HandlerDate.transformTimeToSecond(endTime);
     
     if(startTimeSchedule >= endTimeSchedule)
       throw new BadRequestException('Start time must be before end time');
-  }
-
-  private getTimeToSecond(hourString: string) {
-    const hourArray = hourString.split(':').map(Number);
-    return hourArray[0] * 3600 + hourArray[1] * 60;
   }
 }

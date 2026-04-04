@@ -5,7 +5,7 @@ import { Booking } from 'src/bookings/entities/booking.entity';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { AppointmentStatus } from 'src/common/enums';
-import { DbException, FormatScheduleQuery, Permission } from 'src/common/helpers';
+import { DbException, FormatScheduleQuery, HandlerDate, Permission } from 'src/common/helpers';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
 import { SpecialistsService } from 'src/specialists/specialists.service';
 import { User } from 'src/users/entities/user.entity';
@@ -126,31 +126,18 @@ export class ScheduleExceptionsService {
   }
 
   private validateDateAndTimes(createScheduleExceptionDto: CreateScheduleExceptionDto) {
-    const today = this.getToday();
+    const currentDate = HandlerDate.getCurrentDate();
     const scheduleExceptionDate = createScheduleExceptionDto.date;
 
-    if(scheduleExceptionDate <= today)
+    if(scheduleExceptionDate <= currentDate)
       throw new BadRequestException('Date must be greater than today');
     
     if(createScheduleExceptionDto.startTime && createScheduleExceptionDto.endTime) {
-      const startTimeSchedule = this.getTimeToSecond(createScheduleExceptionDto.startTime);
-      const endTimeSchedule = this.getTimeToSecond(createScheduleExceptionDto.endTime);
+      const startTimeSchedule = HandlerDate.transformTimeToSecond(createScheduleExceptionDto.startTime);
+      const endTimeSchedule = HandlerDate.transformTimeToSecond(createScheduleExceptionDto.endTime);
     
       if(startTimeSchedule >= endTimeSchedule)
         throw new BadRequestException('Start time must be before end time');
     }
-  }
-
-  private getTimeToSecond(hourString: string) {
-    const hourArray = hourString.split(':').map(Number);
-    return hourArray[0] * 3600 + hourArray[1] * 60;
-  }
-
-  private getToday() {
-    const today = new Date();
-    const day = String(today.getDate()).padStart(2, '0');
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const year = String(today.getFullYear());
-    return `${year}-${month}-${day}`;
   }
 }
