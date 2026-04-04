@@ -4,7 +4,7 @@ import { LoginResponseDto, RegisterResponseDto } from '../dto';
 
 export class AuthResponse {
     static getUser(authenticatedUser: User): UserResponseDto {
-        const { password, company, bookings, ...userResponse } = authenticatedUser;
+        const { password, company, bookings, isActive, ...userResponse } = authenticatedUser;
         return userResponse;
     }
       

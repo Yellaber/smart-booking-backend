@@ -32,7 +32,7 @@ export class UsersService {
       skip: offset
     });
 
-    return UserResponse.getPaginationUser(total, users);
+    return UserResponse.getPagination(total, users);
   }
 
   async findOneUserResponse(companySlug: string, userId: string, authenticatedUser: User) {

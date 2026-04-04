@@ -7,7 +7,7 @@ export class UserResponse {
         return userResponse;
     }
 
-    static getPaginationUser(total: number, users: User[]): PaginationUserResponseDto {
+    static getPagination(total: number, users: User[]): PaginationUserResponseDto {
         const usersResponse = users.map(user => this.get(user));
         return { total, users: usersResponse };
     }
