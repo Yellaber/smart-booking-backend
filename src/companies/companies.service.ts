@@ -5,8 +5,9 @@ import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { DbException, Permission } from 'src/common/helpers';
 import { User } from 'src/users/entities/user.entity';
-import { CompanyResponseDto, CreateCompanyDto, PaginationCompanyResponseDto, UpdateCompanyDto } from './dto';
+import { CreateCompanyDto, UpdateCompanyDto } from './dto';
 import { Company } from './entities/company.entity';
+import { CompanyResponse } from './helpers/company-response.helper';
 
 @Injectable()
 export class CompaniesService {
@@ -21,7 +22,7 @@ export class CompaniesService {
     try {
       const company = this.companyRepository.create(createCompanyDto);
       await this.companyRepository.save(company);
-      return this.getCompanyResponseDto(company);
+      return CompanyResponse.get(company);
     } catch(error) {
       return this.dbException.handle(error);
     }
@@ -35,13 +36,13 @@ export class CompaniesService {
       skip: offset
     });
 
-    return this.getPaginationCompanyResponse(total, companies);
+    return CompanyResponse.getPagination(total, companies);
   }
 
   async findOneCompanyResponse(companyTerm: string, authenticatedUser: User) {
     const company = await this.findOne(companyTerm);
     Permission.validateInCompany(company, authenticatedUser);
-    return this.getCompanyResponseDto(company);
+    return CompanyResponse.get(company);
   }
 
   async update(companyId: string, updateCompanyDto: UpdateCompanyDto, authenticatedUser: User) {
@@ -51,7 +52,7 @@ export class CompaniesService {
 
     try {
       await this.companyRepository.save(company);
-      return this.getCompanyResponseDto(company);
+      return CompanyResponse.get(company);
     } catch(error) {
       return this.dbException.handle(error);
     }
@@ -71,15 +72,5 @@ export class CompaniesService {
       throw new NotFoundException(`Company with '${ companyTerm }' not found`);
 
     return company;
-  }
-
-  private getCompanyResponseDto(company: Company): CompanyResponseDto {
-    const { branches, users, isActive, ...restCompany } = company;
-    return restCompany;
-  }
-
-  private getPaginationCompanyResponse(total: number, companies: Company[]): PaginationCompanyResponseDto {
-    const companiesResponse = companies.map(this.getCompanyResponseDto);
-    return { total, companies: companiesResponse };
   }
 }
