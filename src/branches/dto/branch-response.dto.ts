@@ -35,7 +35,14 @@ export class BranchResponseDto {
         format: 'string',
     })
     city: string;
-    
+
+    @ApiProperty({
+        example: 'CO',
+        description: 'ISO code of the country where the branch is located.',
+        format: 'string'
+    })
+    country: string;
+
     @ApiProperty({
         example: 'branchname@gmail.com',
         description: 'Email address of the branch.',

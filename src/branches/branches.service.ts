@@ -4,6 +4,7 @@ import { isUUID } from 'class-validator';
 import { Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { CompaniesService } from 'src/companies/companies.service';
+import { CountriesService } from 'src/countries/countries.service';
 import { DbException, Permission } from 'src/common/helpers';
 import { User } from 'src/users/entities/user.entity';
 import { CreateBranchDto, UpdateBranchDto } from './dto';
@@ -16,6 +17,7 @@ export class BranchesService {
 
   constructor(
     private readonly companiesService: CompaniesService,
+    private readonly countriesService: CountriesService,
     @InjectRepository(Branch)
     private readonly branchRepository: Repository<Branch>
   ) {}
@@ -23,9 +25,10 @@ export class BranchesService {
   async create(companySlug: string, createBranchDto: CreateBranchDto, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
     Permission.validateInCompany(company, authenticatedUser);
+    const country = await this.countriesService.findOneBy(createBranchDto.country);
 
     try {
-      const branch = this.branchRepository.create({ ...createBranchDto, company });
+      const branch = this.branchRepository.create({ ...createBranchDto, company, country });
       await this.branchRepository.save(branch);
       return BranchResponse.get(branch);
     } catch(error) {

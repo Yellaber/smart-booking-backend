@@ -23,6 +23,16 @@ export class CreateBranchDto {
     address: string;
 
     @ApiProperty({
+        example: 'CO',
+        description: 'ISO code of the country where the branch is located.',
+        format: 'string'
+    })
+    @IsString()
+    @MinLength(2)
+    @MaxLength(2)
+    country: string;
+
+    @ApiProperty({
         example: 'cartagena',
         description: 'City where the branch is located. It must have 30 characters maximum.',
         format: 'string',
