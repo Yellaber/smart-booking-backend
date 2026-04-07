@@ -6,6 +6,7 @@ import { BookingsModule } from './bookings/bookings.module';
 import { BranchesModule } from './branches/branches.module';
 import { CommonModule } from './common/common.module';
 import { CompaniesModule } from './companies/companies.module';
+import { CountriesModule } from './countries/countries.module';
 import { ScheduleExceptionsModule } from './schedule-exceptions/schedule-exceptions.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { ServicesModule } from './services/services.module';
@@ -31,12 +32,13 @@ import { UsersModule } from './users/users.module';
     BranchesModule,
     CommonModule,
     CompaniesModule,
+    CountriesModule,
     ScheduleExceptionsModule,
     SchedulesModule,
     ServicesModule,
     SetupModule,
     SpecialistsModule,
-    UsersModule,
+    UsersModule
   ]
 })
 export class AppModule {}

@@ -17,6 +17,7 @@ export class PaginationBranchResponseDto {
                 slug: 'branch-name',
                 address: 'Cra 123 #45-67',
                 city: 'cartagena',
+                country: 'CO',
                 phone: '1234567890',
                 email: 'branchname@company.com'
             }

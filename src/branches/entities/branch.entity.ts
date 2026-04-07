@@ -1,8 +1,9 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Booking } from 'src/bookings/entities/booking.entity';
 import { Company } from 'src/companies/entities/company.entity';
+import { Country } from 'src/countries/entities/country.entity';
 import { Service } from 'src/services/entities/service.entity';
 import { Specialist } from 'src/specialists/entities/specialist.entity';
-import { Booking } from 'src/bookings/entities/booking.entity';
 
 @Entity({ name: 'branches' })
 @Unique('UQ_company_branch_name', [ 'company', 'name' ])
@@ -42,6 +43,10 @@ export class Branch {
 
     @OneToMany(() => Booking, (booking) => booking.branch)
     bookings: Booking[];
+
+    @OneToOne(() => Country)
+    @JoinColumn()
+    country: Country;
 
     @BeforeInsert()
     @BeforeUpdate()
