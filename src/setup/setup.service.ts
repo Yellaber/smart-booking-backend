@@ -5,6 +5,8 @@ import { DataSource } from 'typeorm';
 import { UserRole } from 'src/common/enums';
 import { CreateCompanyDto } from 'src/companies/dto';
 import { Company } from 'src/companies/entities/company.entity';
+import { Country } from 'src/countries/entities/country.entity';
+import { countriesIso3166 } from 'src/countries/interfaces/countries-iso3166.interface';
 import { RegisterUserDto } from 'src/users/dto';
 import { User } from 'src/users/entities/user.entity';
 import { SetupResponse } from './helpers/setup-response.helper';
@@ -39,13 +41,14 @@ export class SetupService {
         company: companySetup
       });
       await userRepository.save(userSetup);
+      await manager.insert(Country, countriesIso3166);
       return SetupResponse.get('Setup completed successfully', true);
     });
   }
 
   private getCreateCompanyDto(): CreateCompanyDto {
     return {
-      idNumber: '11111111111',
+      idNumber: '123456789',
       name: 'Smart Booking',
       webSite: 'www.smartbooking.com'
     }
