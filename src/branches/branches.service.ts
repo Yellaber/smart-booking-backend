@@ -25,7 +25,7 @@ export class BranchesService {
   async create(companySlug: string, createBranchDto: CreateBranchDto, authenticatedUser: User) {
     const company = await this.companiesService.findOne(companySlug);
     Permission.validateInCompany(company, authenticatedUser);
-    const country = await this.countriesService.findOneBy(createBranchDto.country);
+    const country = await this.countriesService.findOneBy(createBranchDto.alpha2CodeCountry);
 
     try {
       const branch = this.branchRepository.create({ ...createBranchDto, company, country });
