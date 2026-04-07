@@ -30,7 +30,7 @@ export class CreateBranchDto {
     @IsString()
     @MinLength(2)
     @MaxLength(2)
-    country: string;
+    alpha2CodeCountry: string;
 
     @ApiProperty({
         example: 'cartagena',
