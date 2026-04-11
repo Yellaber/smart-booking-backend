@@ -9,6 +9,8 @@ import { Country } from 'src/countries/entities/country.entity';
 import { countriesIso3166 } from 'src/countries/interfaces/countries-iso3166.interface';
 import { RegisterUserDto } from 'src/users/dto';
 import { User } from 'src/users/entities/user.entity';
+import { Category } from 'src/categories/entities/category.entity';
+import { categoriesNames } from 'src/categories/interfaces/category.interface';
 import { SetupResponse } from './helpers/setup-response.helper';
 
 @Injectable()
@@ -32,16 +34,21 @@ export class SetupService {
     return this.dataSource.transaction(async manager => {
       const companyRepository = manager.getRepository(Company);
       const userRepository = manager.getRepository(User);
+      const countryRepository = manager.getRepository(Country);
+      const categoryRepository = manager.getRepository(Category);
       const companySetup = companyRepository.create(company);
-      await companyRepository.save(companySetup);
+      await companyRepository.insert(companySetup);
       const userSetup = userRepository.create({
         ...restUser,
         password: passwordBcrypt,
         roles: [ UserRole.SUPER_USER ],
         company: companySetup
       });
-      await userRepository.save(userSetup);
-      await manager.insert(Country, countriesIso3166);
+      await userRepository.insert(userSetup);
+      const countriesSetup = countryRepository.create(countriesIso3166);
+      await countryRepository.insert(countriesSetup);
+      const categoriesSetup = categoryRepository.create(categoriesNames);
+      await categoryRepository.insert(categoriesSetup);
       return SetupResponse.get('Setup completed successfully', true);
     });
   }
@@ -55,9 +62,7 @@ export class SetupService {
   }
 
   private async countCompanies() {
-    const count = await this.dataSource.getRepository(Company)
-      .createQueryBuilder('company')
-      .getCount();
+    const count = await this.dataSource.getRepository(Company).createQueryBuilder('company').getCount();
     return count > 0;
   }
 }
