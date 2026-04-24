@@ -1,5 +1,5 @@
-import { UserResponseDto } from 'src/users/dto';
-import { User } from 'src/users/entities/user.entity';
+import { UserResponseDto } from '../../users/dto';
+import { User } from '../../users/entities/user.entity';
 import { LoginResponseDto, RegisterResponseDto } from '../dto';
 
 export class AuthResponse {

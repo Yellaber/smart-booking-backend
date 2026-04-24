@@ -7,7 +7,7 @@ export class PaginationBookingResponseDto {
         description: 'Total number of bookings',
         format: 'number'
     })
-    total: number;
+    total: number = 0;
 
     @ApiProperty({
         example: [
@@ -30,5 +30,5 @@ export class PaginationBookingResponseDto {
         type: [ BookingResponseDto ],
         description: 'List of bookings in the current page.',
     })
-    bookings: BookingResponseDto[];
+    bookings: BookingResponseDto[] = [];
 }

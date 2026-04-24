@@ -7,7 +7,7 @@ export class PaginationUserResponseDto {
         description: 'Total number of users.',
         format: 'number'
     })
-    total: number;
+    total: number = 0;
 
     @ApiProperty({
         example: [
@@ -28,5 +28,5 @@ export class PaginationUserResponseDto {
         type: [ UserResponseDto ],
         description: 'List of users in the current page.'
     })
-    users: UserResponseDto[];
+    users: UserResponseDto[] = [];
 }

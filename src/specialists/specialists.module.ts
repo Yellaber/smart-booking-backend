@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from 'src/auth/auth.module';
-import { BranchesModule } from 'src/branches/branches.module';
-import { Service } from 'src/services/entities/service.entity';
-import { UsersModule } from 'src/users/users.module';
+import { AuthModule } from '../auth/auth.module';
+import { BranchesModule } from '../branches/branches.module';
+import { Service } from '../services/entities/service.entity';
+import { UsersModule } from '../users/users.module';
 import { Specialist } from './entities/specialist.entity';
 import { SpecialistsController } from './specialists.controller';
 import { SpecialistsService } from './specialists.service';

@@ -1,5 +1,5 @@
-import { Service } from 'src/services/entities/service.entity';
-import { DayOfWeek } from 'src/schedules/interfaces/day-of-week.enum';
+import { DayOfWeek } from '../../schedules/interfaces/day-of-week.enum';
+import { Service } from '../../services/entities/service.entity';
 
 export class HandlerDate {
     static calculateEndTime(startTime: string, services: Service[]) {

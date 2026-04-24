@@ -2,16 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
-import { Category } from 'src/categories/entities/category.entity';
-import { categoriesNames } from 'src/categories/interfaces/category.interface';
-import { UserRole } from 'src/common/enums';
-import { CreateCompanyDto } from 'src/companies/dto';
-import { Company } from 'src/companies/entities/company.entity';
-import { Country } from 'src/countries/entities/country.entity';
-import { countriesIso3166 } from 'src/countries/interfaces/countries-iso3166.interface';
-import { RegisterUserDto } from 'src/users/dto';
-import { User } from 'src/users/entities/user.entity';
+import { Category } from '../categories/entities/category.entity';
+import { categoriesNames } from '../categories/interfaces/category.interface';
+import { UserRole } from '../common/enums';
+import { Company } from '../companies/entities/company.entity';
+import { Country } from '../countries/entities/country.entity';
+import { countriesIso3166 } from '../countries/interfaces/countries-iso3166.interface';
+import { RegisterUserDto } from '../users/dto';
+import { User } from '../users/entities/user.entity';
 import { SetupResponse } from './helpers/setup-response.helper';
+import { SubCategory } from '../subcategories/entities/subcategory.entity';
+import { subCategoriesNames } from '../subcategories/interfaces/subcategory-interface';
 
 @Injectable()
 export class SetupService {
@@ -27,16 +28,29 @@ export class SetupService {
       return SetupResponse.get('Setup has already been completed', false);
     
     const { password, ...restUser } = registerUserDto;
-    const company = this.getCreateCompanyDto();
     const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
     const passwordBcrypt = await bcrypt.hash(password, saltRounds);
     
     return this.dataSource.transaction(async manager => {
-      const companyRepository = manager.getRepository(Company);
-      const userRepository = manager.getRepository(User);
       const countryRepository = manager.getRepository(Country);
       const categoryRepository = manager.getRepository(Category);
-      const companySetup = companyRepository.create(company);
+      const subCategoryRepository = manager.getRepository(SubCategory);
+      const companyRepository = manager.getRepository(Company);
+      const userRepository = manager.getRepository(User);
+      const countriesSetup = countryRepository.create(countriesIso3166);
+      await countryRepository.save(countriesSetup);
+      const categoriesSetup = categoryRepository.create(categoriesNames);
+      await categoryRepository.save(categoriesSetup);
+      subCategoriesNames.forEach(async subCategoryName => {
+        const category = categoriesSetup.find(category => category.name === subCategoryName.category);
+        const subcategorySetup = subCategoryRepository.create({ ...subCategoryName, category });
+        await subCategoryRepository.save(subcategorySetup);
+      });
+      const companySetup = companyRepository.create({
+        idNumber: '123456789',
+        name: 'Smart Booking',
+        webSite: 'www.smartbooking.com',
+      });
       await companyRepository.save(companySetup);
       const userSetup = userRepository.create({
         ...restUser,
@@ -45,21 +59,18 @@ export class SetupService {
         company: companySetup
       });
       await userRepository.save(userSetup);
-      const countriesSetup = countryRepository.create(countriesIso3166);
-      await countryRepository.save(countriesSetup);
-      const categoriesSetup = categoryRepository.create(categoriesNames);
-      await categoryRepository.save(categoriesSetup);
       return SetupResponse.get('Setup completed successfully', true);
     });
   }
 
-  private getCreateCompanyDto(): CreateCompanyDto {
-    return {
-      idNumber: '123456789',
-      name: 'Smart Booking',
-      webSite: 'www.smartbooking.com'
-    }
-  }
+  // private getCreateCompanyDto(): CreateCompanyDto {
+  //   return {
+  //     idNumber: '123456789',
+  //     name: 'Smart Booking',
+  //     webSite: 'www.smartbooking.com',
+  //     subCategoriesIds: [ '' ]
+  //   }
+  // }
 
   private async isDoneBootstrap() {
     const countCompanies = await this.dataSource
@@ -79,6 +90,10 @@ export class SetupService {
       .getRepository(Category)
       .createQueryBuilder('category')
       .getCount();
-    return countCompanies > 0 && countUsers > 0 && countCountries > 0 && countCategories > 0;
+    const countSubCategories = await this.dataSource
+      .getRepository(SubCategory)
+      .createQueryBuilder('subcategory')
+      .getCount();
+    return countCompanies > 0 && countUsers > 0 && countCountries > 0 && countCategories > 0 && countSubCategories > 0;
   }
 }

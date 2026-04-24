@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { DbException, FormatScheduleQuery, HandlerDate, Permission } from 'src/common/helpers';
-import { SpecialistsService } from 'src/specialists/specialists.service';
-import { User } from 'src/users/entities/user.entity';
+import { PaginationDto } from '../common/dtos/pagination.dto';
+import { DbException, FormatScheduleQuery, HandlerDate, Permission } from '../common/helpers';
+import { SpecialistsService } from '../specialists/specialists.service';
+import { User } from '../users/entities/user.entity';
 import { CreateScheduleDto } from './dto';
 import { Schedule } from './entities/schedule.entity';
 import { ScheduleResponse } from './helpers/schedule-response.helper';

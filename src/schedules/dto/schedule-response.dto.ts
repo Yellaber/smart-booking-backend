@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { DayOfWeek } from '../interfaces/day-of-week.enum';
 
 export class ScheduleResponseDto {
     @ApiProperty({
@@ -6,26 +7,26 @@ export class ScheduleResponseDto {
         description: 'Unique identifier of the schedule.',
         format: 'uuid'
     })
-    id: string;
+    id: string = '';
 
     @ApiProperty({
         example: 'monday',
         description: 'Day of the week for the schedule.',
         enum: [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ]
     })
-    dayOfWeek: string;
+    dayOfWeek: DayOfWeek = DayOfWeek.MONDAY;
 
     @ApiProperty({
         example: '08:00:00',
         description: 'Start time of the schedule.',
         format: 'time'
     })
-    startTime: string;
+    startTime: string = '';
 
     @ApiProperty({
         example: '17:00:00',
         description: 'End time of the schedule.',
         format: 'time'
     })
-    endTime: string;
+    endTime: string = '';
 }

@@ -10,7 +10,7 @@ export class CreateServiceDto {
     @IsString()
     @MinLength(1)
     @MaxLength(50)
-    name: string;
+    name: string = '';
 
     @ApiProperty({
         example: 30,
@@ -19,7 +19,7 @@ export class CreateServiceDto {
     })
     @IsNumber()
     @Min(1)
-    durationMinutes: number;
+    durationMinutes: number = 0;
 
     @ApiProperty({
         example: 21000,
@@ -28,5 +28,5 @@ export class CreateServiceDto {
     })
     @IsNumber({ maxDecimalPlaces: 2 })
     @Min(1)
-    price: number;
+    price: number = 0;
 }

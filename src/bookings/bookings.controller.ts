@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { Auth, GetUser } from 'src/auth/decorators';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { AppointmentStatus, UserRole } from 'src/common/enums';
-import { User } from 'src/users/entities/user.entity';
+import { Auth, GetUser } from '../auth/decorators';
+import { PaginationDto } from '../common/dtos/pagination.dto';
+import { AppointmentStatus, UserRole } from '../common/enums';
+import { User } from '../users/entities/user.entity';
 import { BookingsService } from './bookings.service';
 import { BookingResponseDto, CreateBookingDto, PaginationBookingResponseDto } from './dto';
 import { ParseBookingStatusPipe } from './pipes/parse-booking-status/parse-booking-status.pipe';

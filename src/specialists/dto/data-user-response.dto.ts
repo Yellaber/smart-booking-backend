@@ -6,18 +6,18 @@ export class DataUserResponseDto {
         description: 'User id.',
         format: 'uuid'
     })
-    id: string;
+    id: string = '';
 
     @ApiProperty({
         example: 'john doe',
         description: 'User full name.'
     })
-    fullName: string;
+    fullName: string = '';
 
     @ApiProperty({
         example: 'https://www.company.com/users/john-doe.png',
         description: 'User image.',
         nullable: true
     })
-    image: string;
+    image: string = '';
 }

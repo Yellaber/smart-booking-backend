@@ -1,8 +1,8 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { Booking } from 'src/bookings/entities/booking.entity';
-import { UserRole } from 'src/common/enums/user-role.enum';
-import { IdType } from 'src/common/enums';
-import { Company } from 'src/companies/entities/company.entity';
+import { Booking } from '../../bookings/entities/booking.entity';
+import { UserRole } from '../../common/enums/user-role.enum';
+import { IdType } from '../../common/enums';
+import { Company } from '../../companies/entities/company.entity';
 
 @Entity({ name: 'users' })
 @Unique('UQ_company_idNumber', [ 'company', 'idNumber' ])
@@ -10,46 +10,46 @@ import { Company } from 'src/companies/entities/company.entity';
 @Unique('UQ_company_email', [ 'company', 'email' ])
 export class User {
     @PrimaryGeneratedColumn( 'uuid' )
-    id: string;
+    id: string = '';
 
     @Column({ type: 'enum', enum: IdType })
-    idType: IdType;
+    idType: IdType = IdType.CEDULA_CIUDADANIA;
 
     @Column('text')
-    idNumber: string;
+    idNumber: string = '';
 
     @Column('text')
-    fullName: string;
+    fullName: string = '';
 
     @Column('text')
-    userName: string;
+    userName: string = '';
 
     @Column('text')
-    password: string;
+    password: string = '';
 
     @Column('text', { nullable: true })
-    address: string;
+    address: string = '';
 
     @Column('text')
-    email: string;
+    email: string = '';
 
     @Column('text', { nullable: true })
-    phone: string;
+    phone: string = '';
 
     @Column('text', { nullable: true })
-    city: string;
+    city: string = '';
 
     @Column('text', { nullable: true })
-    image: string;
+    image: string = '';
 
     @Column({ type: 'enum', enum: UserRole, array: true, default: [ UserRole.CUSTOMER ] })
     roles: UserRole[];
 
     @Column('boolean', { default: true })
-    isActive: boolean;
+    isActive: boolean = true;
 
     @ManyToOne(() => Company, (company) => company.users)
-    company: Company;
+    company: Company = {} as Company;
 
     @OneToMany(() => Booking, (booking) => booking.user)
     bookings: Booking[];

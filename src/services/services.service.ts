@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { BranchesService } from 'src/branches/branches.service';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { DbException } from 'src/common/helpers';
-import { User } from 'src/users/entities/user.entity';
+import { BranchesService } from '../branches/branches.service';
+import { PaginationDto } from '../common/dtos/pagination.dto';
+import { DbException } from '../common/helpers';
+import { User } from '../users/entities/user.entity';
 import { CreateServiceDto, UpdateServiceDto } from './dto';
 import { Service } from './entities/service.entity';
 import { FormatServiceQuery, ServiceResponse } from './helpers';

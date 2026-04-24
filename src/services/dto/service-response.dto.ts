@@ -6,26 +6,26 @@ export class ServiceResponseDto {
         description: 'Unique identifier of the service.',
         format: 'uuid',
     })
-    id: string;
+    id: string = '';
 
     @ApiProperty({
         example: 'Haircut',
         description: 'Name of the service.',
         format: 'string'
     })
-    name: string;
+    name: string = '';
 
     @ApiProperty({
         example: 30,
         description: 'Duration of the service in minutes.',
         format: 'number'
     })
-    durationMinutes: number;
+    durationMinutes: number = 0;
 
     @ApiProperty({
         example: 21000.00,
         description: 'Price of the service.',
         format: 'number'
     })
-    price: number;
+    price: number = 0;
 }

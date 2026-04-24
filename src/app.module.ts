@@ -14,6 +14,7 @@ import { SetupModule } from './setup/setup.module';
 import { SpecialistsModule } from './specialists/specialists.module';
 import { UsersModule } from './users/users.module';
 import { CategoriesModule } from './categories/categories.module';
+import { SubcategoriesModule } from './subcategories/subcategories.module';
 
 @Module({
   imports: [
@@ -40,7 +41,8 @@ import { CategoriesModule } from './categories/categories.module';
     SetupModule,
     SpecialistsModule,
     UsersModule,
-    CategoriesModule
+    CategoriesModule,
+    SubcategoriesModule
   ]
 })
 export class AppModule {}

@@ -1,8 +1,8 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ApiParam, ApiResponse } from '@nestjs/swagger';
-import { UserRole } from 'src/common/enums';
-import { RegisterUserDto } from 'src/users/dto';
-import { User } from 'src/users/entities/user.entity';
+import { UserRole } from '../common/enums';
+import { RegisterUserDto } from '../users/dto';
+import { User } from '../users/entities/user.entity';
 import { AuthService } from './auth.service';
 import { GetUser } from './decorators';
 import { Auth } from './decorators/auth.decorator';

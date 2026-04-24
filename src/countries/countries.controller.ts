@@ -1,7 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { CountriesService } from './countries.service';
-import { Auth } from 'src/auth/decorators';
-import { UserRole } from 'src/common/enums';
+import { Auth } from '../auth/decorators';
+import { UserRole } from '../common/enums';
 import { ApiParam, ApiResponse } from '@nestjs/swagger';
 import { CountryResponse } from './helpers';
 

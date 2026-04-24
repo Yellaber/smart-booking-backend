@@ -1,5 +1,5 @@
 import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
-import { AppointmentStatus } from 'src/common/enums';
+import { AppointmentStatus } from '../../../common/enums';
 
 const allowedStatuses = Object.values(AppointmentStatus);
 

@@ -7,40 +7,40 @@ export class ScheduleExceptionResponseDto {
         description: 'Unique identifier of the schedule exception.',
         format: 'uuid'
     })
-    id: string;
+    id: string = '';
 
     @ApiProperty({
         example: '2023-01-01',
         description: 'Date of the schedule exception (YYYY-MM-DD).',
         format: 'date'
     })
-    date: string;
+    date: string = '';
 
     @ApiProperty({
         example: '08:00',
         description: 'Start time of the schedule exception (HH:mm).',
         format: 'time'
     })
-    startTime: string;
+    startTime: string = '';
 
     @ApiProperty({
         example: '17:00',
         description: 'End time of the schedule exception (HH:mm).',
         format: 'time'
     })
-    endTime: string;
+    endTime: string = '';
 
     @ApiProperty({
         example: 'extra',
         description: 'Type of the schedule exception.',
         enum: TypeScheduleException
     })
-    type: TypeScheduleException;
+    type: TypeScheduleException = TypeScheduleException.EXTRA;
 
     @ApiProperty({
         example:'This is the reason for the schedule exception.',
         description: 'Reason for the schedule exception.',
         format: 'string'
     })
-    reason: string;
+    reason: string = '';
 }

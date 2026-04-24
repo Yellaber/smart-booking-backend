@@ -4,14 +4,14 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { DbException } from 'src/common/helpers';
-import { CompaniesService } from 'src/companies/companies.service';
-import { Company } from 'src/companies/entities/company.entity';
-import { RegisterUserDto } from 'src/users/dto';
-import { User } from 'src/users/entities/user.entity';
+import { DbException } from '../common/helpers';
+import { CompaniesService } from '../companies/companies.service';
+import { Company } from '../companies/entities/company.entity';
+import { RegisterUserDto } from '../users/dto';
 import { LoginUserDto } from './dto';
 import { AuthResponse } from './helpers/auth-response.helper';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {

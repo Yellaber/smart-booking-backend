@@ -1,4 +1,4 @@
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../users/entities/user.entity';
 import { DataUserResponseDto, PaginationSpecialistResponseDto, SpecialistResponseDto } from '../dto';
 import { Specialist } from '../entities/specialist.entity';
 
