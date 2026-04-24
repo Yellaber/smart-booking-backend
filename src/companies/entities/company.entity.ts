@@ -6,25 +6,25 @@ import { User } from '../../users/entities/user.entity';
 @Entity({ name: 'companies' })
 export class Company {
     @PrimaryGeneratedColumn( 'uuid' )
-    id: string = '';
+    id: string;
     
     @Column('text', { unique: true })
-    idNumber: string = '';
+    idNumber: string;
 
     @Column('text', { unique: true })
-    name: string = '';
+    name: string;
 
     @Column('text', { unique: true })
-    slug: string = '';
+    slug: string;
 
     @Column('text', { nullable: true })
-    webSite: string = '';
+    webSite: string;
 
     @Column('text', { nullable: true })
-    logo: string = '';
+    logo: string;
 
     @Column('boolean', { default: true })
-    isActive: boolean = true;
+    isActive: boolean;
 
     @OneToMany(() => Branch, (branch) => branch.company)
     branches: Branch[];

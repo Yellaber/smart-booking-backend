@@ -10,46 +10,46 @@ import { Company } from '../../companies/entities/company.entity';
 @Unique('UQ_company_email', [ 'company', 'email' ])
 export class User {
     @PrimaryGeneratedColumn( 'uuid' )
-    id: string = '';
+    id: string;
 
     @Column({ type: 'enum', enum: IdType })
-    idType: IdType = IdType.CEDULA_CIUDADANIA;
+    idType: IdType;
 
     @Column('text')
-    idNumber: string = '';
+    idNumber: string;
 
     @Column('text')
-    fullName: string = '';
+    fullName: string;
 
     @Column('text')
-    userName: string = '';
+    userName: string;
 
     @Column('text')
-    password: string = '';
+    password: string;
 
     @Column('text', { nullable: true })
-    address: string = '';
+    address: string;
 
     @Column('text')
-    email: string = '';
+    email: string;
 
     @Column('text', { nullable: true })
-    phone: string = '';
+    phone: string;
 
     @Column('text', { nullable: true })
-    city: string = '';
+    city: string;
 
     @Column('text', { nullable: true })
-    image: string = '';
+    image: string;
 
     @Column({ type: 'enum', enum: UserRole, array: true, default: [ UserRole.CUSTOMER ] })
     roles: UserRole[];
 
     @Column('boolean', { default: true })
-    isActive: boolean = true;
+    isActive: boolean;
 
     @ManyToOne(() => Company, (company) => company.users)
-    company: Company = {} as Company;
+    company: Company;
 
     @OneToMany(() => Booking, (booking) => booking.user)
     bookings: Booking[];

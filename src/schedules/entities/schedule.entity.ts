@@ -5,20 +5,20 @@ import { DayOfWeek } from '../interfaces/day-of-week.enum';
 @Entity('schedules')
 export class Schedule {
     @PrimaryGeneratedColumn('uuid')
-    id: string = '';
+    id: string;
 
     @Column({ type: 'enum', enum: DayOfWeek })
-    dayOfWeek: DayOfWeek = DayOfWeek.MONDAY;
+    dayOfWeek: DayOfWeek;
 
     @Column('time')
-    startTime: string = '';
+    startTime: string;
 
     @Column('time')
-    endTime: string = '';
+    endTime: string;
 
     @Column('boolean', { default: true })
-    isActive: boolean = true;
+    isActive: boolean;
 
     @ManyToOne(() => Specialist, (specialist) => specialist.schedules)
-    specialist: Specialist = {} as Specialist;
+    specialist: Specialist;
 }

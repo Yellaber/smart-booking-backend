@@ -5,28 +5,28 @@ import { TypeScheduleException } from '../interfaces/type-schedule-exception.enu
 @Entity('schedule_exceptions')
 export class ScheduleException {    
     @PrimaryGeneratedColumn('uuid')
-    id: string = '';
+    id: string;
 
     @Column('date')
-    date: string = '';
+    date: string;
 
     @Column('time')
-    startTime: string = '';
+    startTime: string;
 
     @Column('time')
-    endTime: string = '';
+    endTime: string;
 
     @Column({ type: 'enum', enum: TypeScheduleException })
-    type: TypeScheduleException = TypeScheduleException.BLOCK;
+    type: TypeScheduleException;
 
     @Column('text')
-    reason: string = '';
+    reason: string;
 
     @Column('boolean', { default: true })
-    isActive: boolean = true;
+    isActive: boolean;
 
     @ManyToOne(() => Specialist, (specialist) => specialist.scheduleExceptions)
-    specialist: Specialist = {} as Specialist;
+    specialist: Specialist;
 
     @BeforeInsert()
     prepareNameBeforeSave() {

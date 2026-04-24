@@ -4,10 +4,10 @@ import { SubCategory } from '../../subcategories/entities/subcategory.entity';
 @Entity('categories')
 export class Category {
     @PrimaryGeneratedColumn('uuid')
-    id: string = '';
+    id: string;
 
     @Column('text', { unique: true })
-    name: string = '';
+    name: string;
 
     @OneToMany(() => SubCategory, (subCategory) => subCategory.category)
     subCategories: SubCategory[];

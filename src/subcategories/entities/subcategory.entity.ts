@@ -4,11 +4,11 @@ import { Category } from '../../categories/entities/category.entity';
 @Entity('subcategories')
 export class SubCategory {
     @PrimaryGeneratedColumn('uuid')
-    id: string = '';
+    id: string;
 
     @Column('text', { unique: true })
-    name: string = '';
+    name: string;
 
     @ManyToOne(() => Category, (category) => category.subCategories)
-    category: Category = {} as Category;
+    category: Category;
 }

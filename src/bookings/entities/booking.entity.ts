@@ -8,28 +8,28 @@ import { User } from '../../users/entities/user.entity';
 @Entity('bookings')
 export class Booking {
     @PrimaryGeneratedColumn('uuid')
-    id: string = '';
+    id: string;
 
     @Column('date')
-    date: string = '';
+    date: string;
     
     @Column('time')
-    startTime: string = '';
+    startTime: string;
 
     @Column('time')
-    endTime: string = '';
+    endTime: string;
 
     @Column({ type: 'enum', enum: AppointmentStatus, default: AppointmentStatus.CONFIRMED })
-    status: AppointmentStatus = AppointmentStatus.CONFIRMED;
+    status: AppointmentStatus;
 
     @ManyToOne(() => Branch, (branch) => branch.bookings)
-    branch: Branch = {} as Branch;
+    branch: Branch;
 
     @ManyToOne(() => User, (user) => user.bookings)
-    user: User = {} as User;
+    user: User;
 
     @ManyToOne(() => Specialist, (specialist) => specialist.bookings)
-    specialist: Specialist = {} as Specialist;
+    specialist: Specialist;
 
     @ManyToMany(() => Service)
     @JoinTable({ name: 'booking_services' })

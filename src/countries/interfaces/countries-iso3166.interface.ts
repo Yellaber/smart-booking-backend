@@ -18,7 +18,7 @@ export const countriesIso3166: CountryIso3166[] = [
     { "code": "340", "alpha3Code": "HND", "alpha2Code": "HN", "name": "Honduras" },
     { "code": "484", "alpha3Code": "MEX", "alpha2Code": "MX", "name": "México" },
     { "code": "591", "alpha3Code": "PAN", "alpha2Code": "PA", "name": "Panamá" },
-    { "code": "600", "alpha3Code": "PRY", "alpha2Code": "PR", "name": "Paraguay" },
+    { "code": "600", "alpha3Code": "PRY", "alpha2Code": "PY", "name": "Paraguay" },
     { "code": "604", "alpha3Code": "PER", "alpha2Code": "PE", "name": "Perú" },
     { "code": "630", "alpha3Code": "PRI", "alpha2Code": "PR", "name": "Puerto Rico" },
     { "code": "780", "alpha3Code": "TTO", "alpha2Code": "TT", "name": "Trinidad y Tobago" },
