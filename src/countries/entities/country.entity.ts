@@ -3,19 +3,19 @@ import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('countries')
 export class Country {
     @PrimaryGeneratedColumn('uuid')
-    id: string = '';
+    id: string;
 
     @Column('text', { unique: true })
-    code: string = '';
+    code: string;
 
     @Column('text')
-    name: string = '';
+    name: string;
 
     @Column('text', { unique: true })
-    alpha3Code: string = '';
+    alpha3Code: string;
 
     @Column('text', { unique: true })
-    alpha2Code: string = '';
+    alpha2Code: string;
 
     @BeforeInsert()
     checkFieldsBeforeInsert() {

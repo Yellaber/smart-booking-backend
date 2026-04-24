@@ -5,22 +5,22 @@ import { Branch } from '../../branches/entities/branch.entity';
 @Unique('UQ_branch_name', ['branch', 'name'])
 export class Service {
     @PrimaryGeneratedColumn('uuid')
-    id: string = '';
+    id: string;
 
     @Column('text')
-    name: string = '';
+    name: string;
 
     @Column('int')
-    durationMinutes: number = 0;
+    durationMinutes;
 
     @Column('decimal', { precision: 10, scale: 2 })
-    price: number = 0;
+    price: number;
     
     @Column('boolean', { default: true })
-    isActive: boolean = true;
+    isActive: boolean;
 
     @ManyToOne(() => Branch, (branch) => branch.services)
-    branch: Branch = {} as Branch;
+    branch: Branch;
 
     @BeforeInsert()
     @BeforeUpdate()

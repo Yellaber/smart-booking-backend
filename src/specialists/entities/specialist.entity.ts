@@ -10,17 +10,17 @@ import { User } from '../../users/entities/user.entity';
 @Unique('UQ_branch_user', ['branch', 'user'])
 export class Specialist {
     @PrimaryGeneratedColumn('uuid')
-    id: string = '';
+    id: string;
 
     @Column('boolean', { default: true })
-    isActive: boolean = true;
+    isActive: boolean;
     
     @ManyToOne(() => Branch, (branch) => branch.specialists)
-    branch: Branch = {} as Branch;
+    branch: Branch;
 
     @OneToOne(() => User)
     @JoinColumn()
-    user: User = {} as User;
+    user: User;
 
     @OneToMany(() => Schedule, (schedule) => schedule.specialist)
     schedules: Schedule[];

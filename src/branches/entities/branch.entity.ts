@@ -9,31 +9,31 @@ import { Specialist } from '../../specialists/entities/specialist.entity';
 @Unique('UQ_company_branch_name', [ 'company', 'name' ])
 export class Branch {
     @PrimaryGeneratedColumn( 'uuid' )
-    id: string = '';
+    id: string;
 
     @Column('text')
-    name: string = '';
+    name: string;
 
     @Column('text')
-    slug: string = '';
+    slug: string;
 
     @Column('text')
-    address: string = '';
+    address: string;
 
     @Column('text')
-    city: string = '';
+    city: string;
 
     @Column('text', { nullable: true })
-    phone: string = '';
+    phone: string;
 
     @Column('text', { nullable: true })
-    email: string = '';
+    email: string;
 
     @Column('boolean', { default: true })
-    isActive: boolean = true;
+    isActive: boolean;
 
     @ManyToOne(() => Company, (company) => company.branches)
-    company: Company = {} as Company;
+    company: Company;
 
     @OneToMany(() => Specialist, (specialist) => specialist.branch)
     specialists: Specialist[];
@@ -46,7 +46,7 @@ export class Branch {
 
     @OneToOne(() => Country)
     @JoinColumn()
-    country: Country = {} as Country;
+    country: Country;
 
     @BeforeInsert()
     @BeforeUpdate()
