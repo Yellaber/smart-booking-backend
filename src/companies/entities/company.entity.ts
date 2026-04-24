@@ -1,35 +1,40 @@
-import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Branch } from 'src/branches/entities/branch.entity';
-import { User } from 'src/users/entities/user.entity';
+import { BeforeInsert, BeforeUpdate, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Branch } from '../../branches/entities/branch.entity';
+import { SubCategory } from '../../subcategories/entities/subcategory.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity({ name: 'companies' })
 export class Company {
     @PrimaryGeneratedColumn( 'uuid' )
-    id: string;
+    id: string = '';
     
     @Column('text', { unique: true })
-    idNumber: string;
+    idNumber: string = '';
 
     @Column('text', { unique: true })
-    name: string;
+    name: string = '';
 
     @Column('text', { unique: true })
-    slug: string;
+    slug: string = '';
 
     @Column('text', { nullable: true })
-    webSite: string;
+    webSite: string = '';
 
     @Column('text', { nullable: true })
-    logo: string;
+    logo: string = '';
 
     @Column('boolean', { default: true })
-    isActive: boolean;
+    isActive: boolean = true;
 
     @OneToMany(() => Branch, (branch) => branch.company)
     branches: Branch[];
 
     @OneToMany(() => User, (user) => user.company)
     users: User[];
+
+    @ManyToMany(() => SubCategory)
+    @JoinTable({ name: 'company_subcategories' })
+    subCategories: SubCategory[];
 
     @BeforeInsert()
     @BeforeUpdate()

@@ -7,7 +7,7 @@ export class PaginationCompanyResponseDto {
         description: 'Total number of companies.',
         format: 'number'
     })
-    total: number;
+    total: number = 0;
     
     @ApiProperty({
         example: [
@@ -17,11 +17,12 @@ export class PaginationCompanyResponseDto {
                 name: 'company name',
                 slug: 'company-name',
                 webSite: 'https://www.company.com',
-                logo: 'https://www.company.com/logo.png'
+                logo: 'https://www.company.com/logo.png',
+                subCategories: [ 'barber shop', 'hair salon', 'tatoo shop' ]
             },
         ],
         type: [ CompanyResponseDto ],
         description: 'List of companies in the current page.'
     })
-    companies: CompanyResponseDto[];
+    companies: CompanyResponseDto[] = [];
 }

@@ -10,7 +10,7 @@ export class CreateBranchDto {
     @IsString()
     @MinLength(1)
     @MaxLength(50)
-    name: string;
+    name: string = '';
 
     @ApiProperty({
         example: 'Cra 8 # 14-25',
@@ -20,7 +20,7 @@ export class CreateBranchDto {
     @IsString()
     @MinLength(1)
     @MaxLength(50)
-    address: string;
+    address: string = '';
 
     @ApiProperty({
         example: 'CO',
@@ -30,7 +30,7 @@ export class CreateBranchDto {
     @IsString()
     @MinLength(2)
     @MaxLength(2)
-    alpha2CodeCountry: string;
+    alpha2CodeCountry: string = '';
 
     @ApiProperty({
         example: 'cartagena',
@@ -40,7 +40,7 @@ export class CreateBranchDto {
     @IsString()
     @MinLength(1)
     @MaxLength(30)
-    city: string;
+    city: string = '';
 
     @ApiProperty({
         example: '1234567890',

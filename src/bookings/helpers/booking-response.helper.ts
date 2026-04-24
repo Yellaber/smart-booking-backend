@@ -1,15 +1,12 @@
-import { BookingResponseDto, PaginationBookingResponseDto, ServiceBooking } from 'src/bookings/dto';
-import { Booking } from 'src/bookings/entities/booking.entity';
-import { Service } from 'src/services/entities/service.entity';
+import { BookingResponseDto, PaginationBookingResponseDto, ServiceBooking } from '../dto';
+import { Booking } from '../entities/booking.entity';
+import { Service } from '../../services/entities/service.entity';
 
 export class BookingResponse {
   private static getServiceBooking(services: Service[]): ServiceBooking[] {
-    return services.map(service => ({
-      name: service.name,
-      durationMinutes: service.durationMinutes
-    }));
+    return services.map(({ name, durationMinutes }) => ({ name, durationMinutes }));
   }
-    
+  
   static get(booking: Booking): BookingResponseDto {
     const { branch, user, specialist, services, ...restBooking } = booking;
     const { name: branchName } = branch;

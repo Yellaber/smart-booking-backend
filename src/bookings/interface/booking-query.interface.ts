@@ -1,4 +1,4 @@
-import { AppointmentStatus } from 'src/common/enums'
+import { AppointmentStatus } from '../../common/enums'
 
 export interface BookingQuery {
   id?: string,

@@ -7,7 +7,7 @@ export class PaginationServiceResponseDto {
         description: 'Total number of services.',
         format: 'number'
     })
-    total: number;
+    total: number = 0;
 
     @ApiProperty({
         example: [
@@ -21,5 +21,5 @@ export class PaginationServiceResponseDto {
         type: [ ServiceResponseDto ],
         description: 'List of services in the current page.',
     })
-    services: ServiceResponseDto[];
+    services: ServiceResponseDto[] = [];
 }

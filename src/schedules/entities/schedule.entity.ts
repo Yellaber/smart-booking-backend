@@ -1,24 +1,24 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Specialist } from 'src/specialists/entities/specialist.entity';
+import { Specialist } from '../../specialists/entities/specialist.entity';
 import { DayOfWeek } from '../interfaces/day-of-week.enum';
 
 @Entity('schedules')
 export class Schedule {
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id: string = '';
 
     @Column({ type: 'enum', enum: DayOfWeek })
-    dayOfWeek: DayOfWeek;
+    dayOfWeek: DayOfWeek = DayOfWeek.MONDAY;
 
     @Column('time')
-    startTime: string;
+    startTime: string = '';
 
     @Column('time')
-    endTime: string;
+    endTime: string = '';
 
     @Column('boolean', { default: true })
-    isActive: boolean;
+    isActive: boolean = true;
 
     @ManyToOne(() => Specialist, (specialist) => specialist.schedules)
-    specialist: Specialist;
+    specialist: Specialist = {} as Specialist;
 }

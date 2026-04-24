@@ -1,8 +1,8 @@
 import { Controller, Get, Body, Patch, Param, ParseUUIDPipe, Query, Delete } from '@nestjs/common';
 import { ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { Auth, GetUser } from 'src/auth/decorators';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { UserRole } from 'src/common/enums';
+import { Auth, GetUser } from '../auth/decorators';
+import { PaginationDto } from '../common/dtos/pagination.dto';
+import { UserRole } from '../common/enums';
 import { PaginationUserResponseDto, UpdateUserDto, UserResponseDto } from './dto';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';

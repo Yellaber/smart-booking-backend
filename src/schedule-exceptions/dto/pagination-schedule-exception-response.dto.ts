@@ -7,7 +7,7 @@ export class PaginationScheduleExceptionResponseDto {
     description: 'Total number of schedule exceptions.',
     format: 'number'
   })
-  total: number;
+  total: number = 0;
 
   @ApiProperty({
     example: [
@@ -23,5 +23,5 @@ export class PaginationScheduleExceptionResponseDto {
     type: [ ScheduleExceptionResponseDto ],
     description: 'List of schedule exceptions.'
   })
-  scheduleExceptions: ScheduleExceptionResponseDto[];
+  scheduleExceptions: ScheduleExceptionResponseDto[] = [];
 }

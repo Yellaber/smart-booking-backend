@@ -7,7 +7,7 @@ export class PaginationBranchResponseDto {
         description: 'Total number of branches',
         format: 'number'
     })
-    total: number;
+    total: number = 0;
 
     @ApiProperty({
         example: [
@@ -25,5 +25,5 @@ export class PaginationBranchResponseDto {
         type: [ BranchResponseDto ],
         description: 'List of branches in the current page.',
     })
-    branches: BranchResponseDto[];
+    branches: BranchResponseDto[] = [];
 }

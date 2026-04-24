@@ -11,7 +11,7 @@ export class LoginUserDto {
     @Matches(/^[A-Za-z][A-Za-z0-9-]{4,9}$/,
         { message: 'userName must start with a letter, can contain letters, digits, and hyphens (-), and be between 5 and 10 characters long.' }
     )
-    userName: string;
+    userName: string = '';
 
     @ApiProperty({
         example: 'Password1!',
@@ -22,5 +22,5 @@ export class LoginUserDto {
     @Matches(/^[A-Z](?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$/,
         { message: 'password must start with an uppercase letter, contain lowercase letters, digits, at least one special character, and be at least 8 characters long.' }
     )
-    password: string;
+    password: string = '';
 }

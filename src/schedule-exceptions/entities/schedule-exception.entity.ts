@@ -1,32 +1,32 @@
 import { BeforeInsert, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Specialist } from 'src/specialists/entities/specialist.entity';
+import { Specialist } from '../../specialists/entities/specialist.entity';
 import { TypeScheduleException } from '../interfaces/type-schedule-exception.enum';
 
 @Entity('schedule_exceptions')
 export class ScheduleException {    
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id: string = '';
 
     @Column('date')
-    date: string;
+    date: string = '';
 
     @Column('time')
-    startTime: string;
+    startTime: string = '';
 
     @Column('time')
-    endTime: string;
+    endTime: string = '';
 
     @Column({ type: 'enum', enum: TypeScheduleException })
-    type: TypeScheduleException;
+    type: TypeScheduleException = TypeScheduleException.BLOCK;
 
     @Column('text')
-    reason: string;
+    reason: string = '';
 
     @Column('boolean', { default: true })
-    isActive: boolean;
+    isActive: boolean = true;
 
     @ManyToOne(() => Specialist, (specialist) => specialist.scheduleExceptions)
-    specialist: Specialist;
+    specialist: Specialist = {} as Specialist;
 
     @BeforeInsert()
     prepareNameBeforeSave() {

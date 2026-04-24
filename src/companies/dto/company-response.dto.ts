@@ -6,28 +6,28 @@ export class CompanyResponseDto {
         description: 'Unique identifier for the company in UUID format',
         format: 'uuid'
     })
-    id: string;
+    id: string = '';
 
     @ApiProperty({
         example: '12345678901',
         description: 'The identification number of the company',
         format: 'string'
     })
-    idNumber: string;
+    idNumber: string = '';
     
     @ApiProperty({
         example: 'company name',
         description: 'The name of the company',
         format: 'string'
     })
-    name: string;
+    name: string = '';
 
     @ApiProperty({
         example: 'company-name',
         description: 'The slug of the company',
         format: 'string'
     })
-    slug: string;
+    slug: string = '';
     
     @ApiProperty({
         example: 'www.company.com',
@@ -44,4 +44,12 @@ export class CompanyResponseDto {
         required: false
     })
     logo?: string;
+
+    @ApiProperty({
+        example: [ 'Barber shop', 'Hair salon', 'Tatoo shop' ],
+        description: 'List of subcategories associated with the company',
+        format: 'string',
+        isArray: true
+    })
+    subCategories: string[] = [];
 }

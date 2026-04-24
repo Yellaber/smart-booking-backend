@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class CreateCompanyDto {
   @ApiProperty({
@@ -10,7 +10,7 @@ export class CreateCompanyDto {
   @IsString()
   @MinLength(1)
   @MaxLength(11)
-  idNumber: string;
+  idNumber: string = '';
 
   @ApiProperty({
     example: 'Company name',
@@ -20,7 +20,7 @@ export class CreateCompanyDto {
   @IsString()
   @MinLength(1)
   @MaxLength(30)
-  name: string;
+  name: string = '';
 
   @ApiProperty({
     example: 'www.company.com',
@@ -45,4 +45,13 @@ export class CreateCompanyDto {
   @MinLength(1)
   @MaxLength(255)
   logo?: string;
+
+  @ApiProperty({
+    example: [ '123e4567-e89b-12d3-a456-426614174000' ],
+    description: 'IDs of the subcategories related with the company',
+    format: 'uuid',
+    isArray: true
+  })
+  @IsUUID('all', { each: true })
+  subCategoriesIds: string[] = [];
 }

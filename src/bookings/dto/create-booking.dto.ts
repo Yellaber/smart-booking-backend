@@ -8,7 +8,7 @@ export class CreateBookingDto {
         format: 'uuid'
     })
     @IsUUID()
-    userId: string;
+    userId: string = '';
 
     @ApiProperty({
         example: '722e2345-e52b-02d1-a324-225530367080',
@@ -16,7 +16,7 @@ export class CreateBookingDto {
         format: 'uuid'
     })
     @IsUUID()
-    specialistId: string;
+    specialistId: string = '';
 
     @ApiProperty({
         example: ['123e4567-e89b-12d3-a456-426614174000'],
@@ -25,7 +25,7 @@ export class CreateBookingDto {
         isArray: true
     })
     @IsUUID('all', { each: true })
-    servicesIds: string[];
+    servicesIds: string[] = [];
 
     @ApiProperty({
         example: '2026-01-01',
@@ -36,7 +36,7 @@ export class CreateBookingDto {
     @Matches(/^\d{4}-\d{2}-\d{2}$/, {
         message: 'date must be in YYYY-MM-DD format'
     })
-    date: string;
+    date: string = '';
     
     @ApiProperty({
         example: '08:00',
@@ -47,5 +47,5 @@ export class CreateBookingDto {
     @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
         message: 'startTime must be in HH:mm format'
     })
-    startTime: string;
+    startTime: string = '';
 }

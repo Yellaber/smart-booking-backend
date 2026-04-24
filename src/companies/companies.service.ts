@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { isUUID } from 'class-validator';
-import { Repository } from 'typeorm';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
-import { DbException, Permission } from 'src/common/helpers';
-import { User } from 'src/users/entities/user.entity';
+import { In, Repository } from 'typeorm';
+import { PaginationDto } from '../common/dtos/pagination.dto';
+import { DbException, Permission } from '../common/helpers';
+import { SubCategory } from '../subcategories/entities/subcategory.entity';
+import { User } from '../users/entities/user.entity';
 import { CreateCompanyDto, UpdateCompanyDto } from './dto';
 import { Company } from './entities/company.entity';
 import { CompanyResponse } from './helpers/company-response.helper';
@@ -15,12 +16,17 @@ export class CompaniesService {
 
   constructor(
     @InjectRepository(Company)
-    private readonly companyRepository: Repository<Company>
+    private readonly companyRepository: Repository<Company>,
+    @InjectRepository(SubCategory)
+    private readonly subCategoryRepository: Repository<SubCategory>
   ) {}
 
   async create(createCompanyDto: CreateCompanyDto) {
+    const { subCategoriesIds, ...restCreateCompanyDto } = createCompanyDto;
+    const subCategories = await this.getSubCategories(subCategoriesIds);
+
     try {
-      const company = this.companyRepository.create(createCompanyDto);
+      const company = this.companyRepository.create({ ...restCreateCompanyDto, subCategories });
       await this.companyRepository.save(company);
       return CompanyResponse.get(company);
     } catch(error) {
@@ -33,7 +39,8 @@ export class CompaniesService {
     const [ companies, total ] = await this.companyRepository.findAndCount({
       where: { isActive: true },
       take: limit,
-      skip: offset
+      skip: offset,
+      relations: { subCategories: true }
     });
 
     return CompanyResponse.getPagination(total, companies);
@@ -66,11 +73,21 @@ export class CompaniesService {
 
   async findOne(companyTerm: string) {
     const query = isUUID(companyTerm)? { id: companyTerm, isActive: true }: { slug: companyTerm.toLowerCase(), isActive: true };
-    const company = await this.companyRepository.findOne({ where: query });
+    const company = await this.companyRepository.findOne({ where: query, relations: { subCategories: true } });
     
     if(!company)
       throw new NotFoundException(`Company with '${ companyTerm }' not found`);
 
     return company;
+  }
+
+  private async getSubCategories(subCategoriesIds: string[]) {
+    const uniqueSubCategoriesIds = [ ...new Set(subCategoriesIds) ];
+    const subCategories = await this.subCategoryRepository.findBy({ id: In(uniqueSubCategoriesIds) });
+    
+    if(subCategories.length !== uniqueSubCategoriesIds.length)
+      throw new NotFoundException('One or more subcategories not found');
+    
+    return subCategories;
   }
 }

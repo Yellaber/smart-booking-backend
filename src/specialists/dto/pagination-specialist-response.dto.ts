@@ -7,7 +7,7 @@ export class PaginationSpecialistResponseDto {
         description: 'Total number of specialists.',
         format: 'number'
     })
-    total: number;
+    total: number = 0;
 
     @ApiProperty({
         example: [
@@ -24,5 +24,5 @@ export class PaginationSpecialistResponseDto {
         type: [ SpecialistResponseDto ],
         description: 'List of specialists in the current page.'
     })
-    specialists: SpecialistResponseDto[];
+    specialists: SpecialistResponseDto[] = [];
 }

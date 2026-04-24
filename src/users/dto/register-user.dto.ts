@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsEnum, IsNumberString, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
-import { IdType } from 'src/common/enums';
+import { IdType } from '../../common/enums';
 
 export class RegisterUserDto {
     @ApiProperty({
@@ -12,7 +12,7 @@ export class RegisterUserDto {
     @IsEnum(IdType)
     @MinLength(1)
     @MaxLength(3)
-    idType: IdType;
+    idType: IdType = IdType.CEDULA_CIUDADANIA;
 
     @ApiProperty({
         example: '1234567890',
@@ -22,7 +22,7 @@ export class RegisterUserDto {
     @IsNumberString()
     @MinLength(1)
     @MaxLength(12)
-    idNumber: string;
+    idNumber: string = '';
 
     @ApiProperty({
         example: 'john doe',
@@ -32,7 +32,7 @@ export class RegisterUserDto {
     @IsString()
     @MinLength(1)
     @MaxLength(30)
-    fullName: string;
+    fullName: string = '';
 
     @ApiProperty({
         example: 'john-doe',
@@ -43,7 +43,7 @@ export class RegisterUserDto {
     @Matches(/^[A-Za-z][A-Za-z0-9-]{4,9}$/,
         { message: 'userName must start with a letter, can contain letters, digits, and hyphens (-), and be between 5 and 10 characters long.' }
     )
-    userName: string;
+    userName: string = '';
 
     @ApiProperty({
         example: 'Password1!',
@@ -54,7 +54,7 @@ export class RegisterUserDto {
     @Matches(/^[A-Z](?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$/,
         { message: 'password must start with an uppercase letter, contain lowercase letters, digits, at least one special character, and be at least 8 characters long.' }
     )
-    password: string;
+    password: string = '';
 
     @ApiProperty({
         example: 'Cra 8 # 14-25',
@@ -76,7 +76,7 @@ export class RegisterUserDto {
     })
     @IsEmail()
     @MaxLength(40)
-    email: string;
+    email: string = '';
         
     @ApiProperty({
         example: '1234567890',

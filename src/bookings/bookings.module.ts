@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from 'src/auth/auth.module';
-import { BranchesModule } from 'src/branches/branches.module';
-import { Service } from 'src/services/entities/service.entity';
-import { Specialist } from 'src/specialists/entities/specialist.entity';
-import { User } from 'src/users/entities/user.entity';
+import { AuthModule } from '../auth/auth.module';
+import { BranchesModule } from '../branches/branches.module';
+import { Service } from '../services/entities/service.entity';
+import { Specialist } from '../specialists/entities/specialist.entity';
+import { User } from '../users/entities/user.entity';
 import { BookingsService } from './bookings.service';
 import { BookingsController } from './bookings.controller';
 import { Booking } from './entities/booking.entity';

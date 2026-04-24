@@ -6,12 +6,12 @@ export class ServiceBooking {
         description: 'The name of the service.',
         format: 'string'
     })
-    name: string;
+    name: string = '';
 
     @ApiProperty({
         example: 30,
         description: 'The duration of the service in minutes.',
         format: 'number'
     })
-    durationMinutes: number;
+    durationMinutes: number = 0;
 }

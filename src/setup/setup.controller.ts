@@ -1,6 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
-import { RegisterUserDto } from 'src/users/dto';
+import { RegisterUserDto } from '../users/dto';
 import { SetupResponseDto } from './dto/setup-response.dto';
 import { SetupService } from './setup.service';
 

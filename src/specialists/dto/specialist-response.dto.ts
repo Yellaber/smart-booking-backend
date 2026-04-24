@@ -7,7 +7,7 @@ export class SpecialistResponseDto {
         description: 'Specialist id.',
         format: 'uuid'
     })
-    id: string;
+    id: string = '';
 
     @ApiProperty({
         example: {
@@ -18,5 +18,5 @@ export class SpecialistResponseDto {
         type: DataUserResponseDto,
         description: 'User data.'
     })
-    user: DataUserResponseDto;
+    user: DataUserResponseDto = {} as DataUserResponseDto;
 }

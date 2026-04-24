@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IdType, UserRole } from 'src/common/enums';
+import { IdType, UserRole } from '../../common/enums';
 
 export class UserResponseDto {
     @ApiProperty({
@@ -8,7 +8,7 @@ export class UserResponseDto {
         uniqueItems: true,
         format: 'uuid'
     })
-    id: string;
+    id: string = '';
 
     @ApiProperty({
         example: 'CC',
@@ -16,21 +16,21 @@ export class UserResponseDto {
         enum: IdType,
         format: 'string'
     })
-    idType: IdType;
+    idType: IdType = IdType.CEDULA_CIUDADANIA;
     
     @ApiProperty({
         example: '1234567890',
         description: 'Identification number of the profile owner.',
         format: 'string'
     })
-    idNumber: string;
+    idNumber: string = '';
     
     @ApiProperty({
         example: 'john doe',
         description: 'Full name of the profile owner.',
         format: 'string'
     })
-    fullName: string;
+    fullName: string = '';
     
     @ApiProperty({
         example: 'john-doe',
@@ -38,7 +38,7 @@ export class UserResponseDto {
         uniqueItems: true,
         format: 'string'
     })
-    userName: string;
+    userName: string = '';
 
     @ApiProperty({
         example: '123 Main St, Springfield',
@@ -53,7 +53,7 @@ export class UserResponseDto {
         description: 'Email address of the profile owner.',
         format: 'string',
     })
-    email: string;
+    email: string = '';
             
     @ApiProperty({
         example: '1234567890',
@@ -80,11 +80,11 @@ export class UserResponseDto {
     image?: string;
     
     @ApiProperty({
-        example: [ UserRole.CUSTOMER, UserRole.SPECIALIST ],
+        example: [ 'customer', 'specialist' ],
         description: 'Roles assigned to the user.',
         enum: UserRole,
         isArray: true,
-        default: [ UserRole.CUSTOMER ]
+        default: [ 'customer' ]
     })
-    roles: UserRole[];
+    roles: UserRole[] = [];
 }

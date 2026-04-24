@@ -1,11 +1,11 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsEnum, IsOptional } from 'class-validator';
-import { UserRole } from 'src/common/enums/user-role.enum';
+import { UserRole } from '../../common/enums/user-role.enum';
 import { RegisterUserDto } from './register-user.dto';
 
 export class UpdateUserDto extends PartialType(RegisterUserDto) {
     @ApiProperty({
-        example: [ UserRole.CUSTOMER, UserRole.SPECIALIST ],
+        example: [ 'customer', 'specialist' ],
         description: 'Roles assigned to the user.',
         enum: UserRole,
         required: false,

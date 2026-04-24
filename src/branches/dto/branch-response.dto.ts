@@ -6,42 +6,42 @@ export class BranchResponseDto {
         description: 'UUID of the branch',
         format: 'uuid',
     })
-    id: string;
+    id: string = '';
 
     @ApiProperty({
         example: 'Main branch',
         description: 'The name of the branch.',
         format: 'string',
     })
-    name: string;
+    name: string = '';
 
     @ApiProperty({
         example: 'main-branch',
         description: 'Slug of the branch.',
         format: 'string',
     })
-    slug: string;
+    slug: string = '';
     
     @ApiProperty({
         example: 'Cra 8 # 14-25',
         description: 'Address of the branch.',
         format: 'string'
     })
-    address: string;
+    address: string = '';
     
     @ApiProperty({
         example: 'cartagena',
         description: 'City where the branch is located.',
         format: 'string',
     })
-    city: string;
+    city: string = '';
 
     @ApiProperty({
         example: 'CO',
         description: 'ISO code of the country where the branch is located.',
         format: 'string'
     })
-    country: string;
+    country: string = '';
 
     @ApiProperty({
         example: 'branchname@gmail.com',

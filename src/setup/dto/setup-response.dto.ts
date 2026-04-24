@@ -6,12 +6,12 @@ export class SetupResponseDto {
         description: 'Message indicating the result of the setup process',
         format: 'string'
     })
-    message: string;
+    message: string = '';
 
     @ApiProperty({
         example: true,
         description: 'Indicates if the setup was successful',
         format: 'boolean'
     })
-    success: boolean;
+    success: boolean = true;
 }

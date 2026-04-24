@@ -1,39 +1,39 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
-import { Booking } from 'src/bookings/entities/booking.entity';
-import { Company } from 'src/companies/entities/company.entity';
-import { Country } from 'src/countries/entities/country.entity';
-import { Service } from 'src/services/entities/service.entity';
-import { Specialist } from 'src/specialists/entities/specialist.entity';
+import { Booking } from '../../bookings/entities/booking.entity';
+import { Company } from '../../companies/entities/company.entity';
+import { Country } from '../../countries/entities/country.entity';
+import { Service } from '../../services/entities/service.entity';
+import { Specialist } from '../../specialists/entities/specialist.entity';
 
 @Entity({ name: 'branches' })
 @Unique('UQ_company_branch_name', [ 'company', 'name' ])
 export class Branch {
     @PrimaryGeneratedColumn( 'uuid' )
-    id: string;
+    id: string = '';
 
     @Column('text')
-    name: string;
+    name: string = '';
 
     @Column('text')
-    slug: string;
+    slug: string = '';
 
     @Column('text')
-    address: string;
+    address: string = '';
 
     @Column('text')
-    city: string;
+    city: string = '';
 
     @Column('text', { nullable: true })
-    phone: string;
+    phone: string = '';
 
     @Column('text', { nullable: true })
-    email: string;
+    email: string = '';
 
     @Column('boolean', { default: true })
-    isActive: boolean;
+    isActive: boolean = true;
 
     @ManyToOne(() => Company, (company) => company.branches)
-    company: Company;
+    company: Company = {} as Company;
 
     @OneToMany(() => Specialist, (specialist) => specialist.branch)
     specialists: Specialist[];
@@ -46,7 +46,7 @@ export class Branch {
 
     @OneToOne(() => Country)
     @JoinColumn()
-    country: Country;
+    country: Country = {} as Country;
 
     @BeforeInsert()
     @BeforeUpdate()

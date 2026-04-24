@@ -1,7 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
-import { Company } from 'src/companies/entities/company.entity';
-import { Specialist } from 'src/specialists/entities/specialist.entity';
-import { User } from 'src/users/entities/user.entity';
+import { Company } from '../../companies/entities/company.entity';
+import { Specialist } from '../../specialists/entities/specialist.entity';
+import { User } from '../../users/entities/user.entity';
 import { UserRole } from '../enums';
 
 const messageForbidden = 'User does not have permission to access this resource.';

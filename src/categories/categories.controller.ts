@@ -1,7 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { ApiParam, ApiResponse } from '@nestjs/swagger';
-import { Auth } from 'src/auth/decorators';
-import { UserRole } from 'src/common/enums';
+import { Auth } from '../auth/decorators';
+import { UserRole } from '../common/enums';
 import { CategoriesService } from './categories.service';
 import { CategoryResponseDto } from './dto/category-response.dto';
 

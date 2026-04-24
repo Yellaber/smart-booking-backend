@@ -7,7 +7,7 @@ export class PaginationScheduleResponseDto {
         description: 'Total number of schedules.',
         format: 'number'
     })
-    total: number;
+    total: number = 0;
     
     @ApiProperty({
         example: [
@@ -21,5 +21,5 @@ export class PaginationScheduleResponseDto {
         type: [ ScheduleResponseDto ],
         description: 'List of schedules'
     })
-    schedules: ScheduleResponseDto[];
+    schedules: ScheduleResponseDto[] = [];
 }
