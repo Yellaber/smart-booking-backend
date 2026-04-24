@@ -11,7 +11,7 @@ export class Service {
     name: string;
 
     @Column('int')
-    durationMinutes;
+    durationMinutes: number;
 
     @Column('decimal', { precision: 10, scale: 2 })
     price: number;
