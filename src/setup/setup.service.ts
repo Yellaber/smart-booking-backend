@@ -8,11 +8,11 @@ import { UserRole } from '../common/enums';
 import { Company } from '../companies/entities/company.entity';
 import { Country } from '../countries/entities/country.entity';
 import { countriesIso3166 } from '../countries/interfaces/countries-iso3166.interface';
+import { SubCategory } from '../subcategories/entities/subcategory.entity';
+import { subCategoriesNames } from '../subcategories/interfaces/subcategory-interface';
 import { RegisterUserDto } from '../users/dto';
 import { User } from '../users/entities/user.entity';
 import { SetupResponse } from './helpers/setup-response.helper';
-import { SubCategory } from '../subcategories/entities/subcategory.entity';
-import { subCategoriesNames } from '../subcategories/interfaces/subcategory-interface';
 
 @Injectable()
 export class SetupService {
@@ -26,11 +26,12 @@ export class SetupService {
     
     if(isCompleted)
       return SetupResponse.get('Setup has already been completed', false);
-    
-    const { password, ...restUser } = registerUserDto;
-    const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
-    const passwordBcrypt = await bcrypt.hash(password, saltRounds);
-    
+
+    const userWithEncriptedPassword = await this.getUserWithEncriptedPassword(registerUserDto);
+    return this.getSetupStatus(userWithEncriptedPassword);
+  }
+
+  private async getSetupStatus(userWithEncriptedPassword: RegisterUserDto) {
     return this.dataSource.transaction(async manager => {
       const countryRepository = manager.getRepository(Country);
       const categoryRepository = manager.getRepository(Category);
@@ -41,11 +42,11 @@ export class SetupService {
       await countryRepository.save(countriesSetup);
       const categoriesSetup = categoryRepository.create(categoriesNames);
       await categoryRepository.save(categoriesSetup);
-      subCategoriesNames.forEach(async subCategoryName => {
-        const category = categoriesSetup.find(category => category.name === subCategoryName.category);
-        const subcategorySetup = subCategoryRepository.create({ ...subCategoryName, category });
-        await subCategoryRepository.save(subcategorySetup);
+      const subCategories = subCategoriesNames.map(subCategory => {
+        const category = categoriesSetup.find(categorySetup => categorySetup.name === subCategory.category);
+        return subCategoryRepository.create({ ...subCategory, category });
       });
+      await subCategoryRepository.save(subCategories);
       const companySetup = companyRepository.create({
         idNumber: '123456789',
         name: 'Smart Booking',
@@ -53,8 +54,7 @@ export class SetupService {
       });
       await companyRepository.save(companySetup);
       const userSetup = userRepository.create({
-        ...restUser,
-        password: passwordBcrypt,
+        ...userWithEncriptedPassword,
         roles: [ UserRole.SUPER_USER ],
         company: companySetup
       });
@@ -63,14 +63,11 @@ export class SetupService {
     });
   }
 
-  // private getCreateCompanyDto(): CreateCompanyDto {
-  //   return {
-  //     idNumber: '123456789',
-  //     name: 'Smart Booking',
-  //     webSite: 'www.smartbooking.com',
-  //     subCategoriesIds: [ '' ]
-  //   }
-  // }
+  private async getUserWithEncriptedPassword(registerUserDto: RegisterUserDto) {
+    const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
+    registerUserDto.password = await bcrypt.hash(registerUserDto.password, saltRounds);
+    return registerUserDto;
+  }
 
   private async isDoneBootstrap() {
     const countCompanies = await this.dataSource

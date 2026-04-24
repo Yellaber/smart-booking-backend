@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
 import { ApiParam, ApiResponse } from '@nestjs/swagger';
 import { Auth } from '../auth/decorators';
 import { UserRole } from '../common/enums';
@@ -24,7 +24,7 @@ export class SubcategoriesController {
   @ApiResponse({ status: 401, description: 'Unauthorized. Token related.' })
   @ApiResponse({ status: 403, description: 'Forbidden. User does not have permission to access this resource.' })
   @ApiResponse({ status: 404, description: 'Not found. Subcategory not found.' })
-  findOneById(@Param('subCategoryId') subCategoryId: string) {
+  findOneById(@Param('subCategoryId', ParseUUIDPipe) subCategoryId: string) {
     return this.subcategoriesService.findOneById(subCategoryId);
   }
 }
