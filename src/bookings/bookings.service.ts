@@ -139,11 +139,11 @@ export class BookingsService {
   }
 
   private async findUserInCompany(userId: string, companyId: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId, company: { id: companyId } } });
+    const user = await this.userRepository.findOne({ where: { id: userId, company: { id: companyId }, isActive: true } });
 
     if(!user)
       throw new NotFoundException(`User with '${ userId }' not found in company '${ companyId }'`);
-
+    
     return user;
   }
 
