@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AppointmentStatus } from '../../common/enums';
 import { ServiceBooking } from './service-booking.dto';
+import { TypeAppointment } from '../../common/enums/type-appointment.enum';
 
 export class BookingResponseDto {
     @ApiProperty({
@@ -63,6 +64,13 @@ export class BookingResponseDto {
         format: 'time'
     })
     endTime: string = '';
+
+    @ApiProperty({
+        example: 'scheduled',
+        description: 'The type of the appointment.',
+        enum: TypeAppointment
+    })
+    type: TypeAppointment = TypeAppointment.SCHEDULED;
 
     @ApiProperty({
         example: 'confirmed',
