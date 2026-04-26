@@ -20,7 +20,7 @@ export class Booking {
     @Column('time')
     endTime: string;
 
-    @Column({ type: 'enum', enum: TypeAppointment })
+    @Column({ type: 'enum', enum: TypeAppointment, default: TypeAppointment.SCHEDULED })
     type: TypeAppointment;
 
     @Column({ type: 'enum', enum: AppointmentStatus, default: AppointmentStatus.CONFIRMED })
