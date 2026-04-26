@@ -198,13 +198,14 @@ export class BookingsService {
   }
 
   private async validateBookingTimeSlot(specialistId: string, date: string, startTime: string, endTime: string) {
+    const allowedStatus = [ AppointmentStatus.CONFIRMED, AppointmentStatus.WAITING, AppointmentStatus.IN_PROGRESS ];
     const booking = await this.dataSource.createQueryBuilder()
       .select('booking')
       .from(Booking, 'booking')
       .where('booking.specialistId = :specialistId', { specialistId })
       .andWhere('booking.date = :date', { date })
       .andWhere('(booking.startTime < :endTime AND booking.endTime > :startTime)', { endTime, startTime })
-      .andWhere('booking.status = :status', { status: AppointmentStatus.CONFIRMED })
+      .andWhere('booking.status = :status', { status: In(allowedStatus) })
       .getOne();
 
     if(booking)

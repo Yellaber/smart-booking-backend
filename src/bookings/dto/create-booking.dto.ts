@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID, Matches } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
+import { TypeAppointment } from '../../common/enums/type-appointment.enum';
 
 export class CreateBookingDto {
     @ApiProperty({
@@ -48,4 +49,13 @@ export class CreateBookingDto {
         message: 'startTime must be in HH:mm format'
     })
     startTime: string = '';
+
+    @IsOptional()
+    @IsEnum(TypeAppointment)
+    @ApiProperty({
+        example: 'scheduled',
+        description: 'Type of the appointment.',
+        enum: TypeAppointment
+    })
+    type?: TypeAppointment = TypeAppointment.SCHEDULED;
 }

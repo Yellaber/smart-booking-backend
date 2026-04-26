@@ -4,6 +4,7 @@ import { AppointmentStatus } from '../../common/enums';
 import { Service } from '../../services/entities/service.entity';
 import { Specialist } from '../../specialists/entities/specialist.entity';
 import { User } from '../../users/entities/user.entity';
+import { TypeAppointment } from '../../common/enums/type-appointment.enum';
 
 @Entity('bookings')
 export class Booking {
@@ -18,6 +19,9 @@ export class Booking {
 
     @Column('time')
     endTime: string;
+
+    @Column({ type: 'enum', enum: TypeAppointment, default: TypeAppointment.SCHEDULED })
+    type: TypeAppointment;
 
     @Column({ type: 'enum', enum: AppointmentStatus, default: AppointmentStatus.CONFIRMED })
     status: AppointmentStatus;
