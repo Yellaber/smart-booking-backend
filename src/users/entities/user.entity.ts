@@ -1,4 +1,5 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Assessment } from '../../assesments/entities/assessment.entity';
 import { Booking } from '../../bookings/entities/booking.entity';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { IdType } from '../../common/enums';
@@ -54,9 +55,12 @@ export class User {
     @OneToMany(() => Booking, (booking) => booking.user)
     bookings: Booking[];
 
+    @OneToMany(() => Assessment, (assessment) => assessment.user)
+    assessments: Assessment[];
+
     @BeforeInsert()
     @BeforeUpdate()
-    checkFieldsBeforeInsert() {
+    checkFieldsBeforeInsertAndUpdate() {
         if(this.fullName)
             this.fullName = this.fullName.toLowerCase();
 

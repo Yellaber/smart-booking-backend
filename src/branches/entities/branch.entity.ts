@@ -1,4 +1,5 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Assessment } from '../../assesments/entities/assessment.entity';
 import { Booking } from '../../bookings/entities/booking.entity';
 import { Company } from '../../companies/entities/company.entity';
 import { Country } from '../../countries/entities/country.entity';
@@ -44,13 +45,16 @@ export class Branch {
     @OneToMany(() => Booking, (booking) => booking.branch)
     bookings: Booking[];
 
+    @OneToMany(() => Assessment, (assessment) => assessment.branch)
+    assessments: Assessment[];
+
     @OneToOne(() => Country)
     @JoinColumn()
     country: Country;
 
     @BeforeInsert()
     @BeforeUpdate()
-    prepareDataBeforeSave() {
+    checkFieldsBeforeInsertAndUpdate() {
         if(this.name) {
             this.name = this.name.toLowerCase().trim();
             this.slug = this.name.normalize('NFD')

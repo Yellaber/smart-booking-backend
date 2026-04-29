@@ -3,7 +3,7 @@ import { Branch } from '../entities/branch.entity';
 
 export class BranchResponse {
     static get(branch: Branch): BranchResponseDto {
-        const { company, specialists, services, bookings, country, isActive, ...restBranch } = branch;
+        const { company, specialists, services, bookings, assessments, country, isActive, ...restBranch } = branch;
         return { ...restBranch, country: country.alpha2Code };
     }
     
