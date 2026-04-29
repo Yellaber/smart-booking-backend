@@ -13,7 +13,7 @@ export class PaginationAssessmentResponseDto {
         example: [
             {
                 id: '123e4567-e89b-12d3-a456-426614174000',
-                vote: 4,
+                rating: 4.0,
                 comment: 'Great service!'
             }
         ],

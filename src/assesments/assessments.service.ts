@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DbException } from '../common/helpers';
@@ -10,7 +10,7 @@ import { AssessmentResponse } from './helpers/assessment-response.helper';
 
 @Injectable()
 export class AssessmentsService {
-  private readonly dbException = new DbException('AssesmentsService');
+  private readonly dbException = new DbException('AssessmentsService');
 
   constructor(
     private readonly branchesService: BranchesService,
@@ -44,13 +44,13 @@ export class AssessmentsService {
       throw new BadRequestException('Pagination parameters are required to get assessments');
 
     const { limit = 10, offset = 0 } = paginationDto;
-    const [ assesments, total ] = await this.assessmentRepository.findAndCount({
+    const [ assessments, total ] = await this.assessmentRepository.findAndCount({
       where: { branch: { id: branch.id }, user: { id: user.id }, isActive: true },
       take: limit,
       skip: offset
     });
-
-    return AssessmentResponse.getPagination(total, assesments);
+    
+    return AssessmentResponse.getPagination(total, assessments);
   }
 
   async findOneById(assessmentParameters: AssessmentParameters) {
@@ -87,7 +87,7 @@ export class AssessmentsService {
     const { company } = branch;
 
     if(!assessmentId)
-      throw new BadRequestException('Assessment id is required to get assesment');
+      throw new BadRequestException('assessmentId is required to get assessment');
 
     const user = await this.usersService.findOne(company.id, userId, authenticatedUser);
     const assessment = await this.assessmentRepository.findOne(
@@ -95,7 +95,7 @@ export class AssessmentsService {
     );
 
     if(!assessment)
-      throw new BadRequestException(`Assessment with '${ assessmentId }' not found for this branch and user`);
+      throw new NotFoundException(`Assessment with '${ assessmentId }' not found for this branch and user`);
 
     return assessment;
   }
