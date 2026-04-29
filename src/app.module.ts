@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AssessmentsModule } from './assesments/assessments.module';
 import { AuthModule } from './auth/auth.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { BranchesModule } from './branches/branches.module';
@@ -29,6 +30,7 @@ import { SubcategoriesModule } from './subcategories/subcategories.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    AssessmentsModule,
     AuthModule,
     BookingsModule,
     BranchesModule,
@@ -42,7 +44,7 @@ import { SubcategoriesModule } from './subcategories/subcategories.module';
     SpecialistsModule,
     UsersModule,
     CategoriesModule,
-    SubcategoriesModule
+    SubcategoriesModule,
   ]
 })
 export class AppModule {}

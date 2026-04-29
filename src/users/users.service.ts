@@ -36,16 +36,12 @@ export class UsersService {
   }
 
   async findOneUserResponse(companySlug: string, userId: string, authenticatedUser: User) {
-    const company = await this.companiesService.findOne(companySlug);
-    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
-    const user = await this.findOne(company.id, userId);
+    const user = await this.findOne(companySlug, userId, authenticatedUser);
     return UserResponse.get(user);
   }
 
   async update(companySlug: string, userId: string, updateUserDto: UpdateUserDto, authenticatedUser: User) {
-    const company = await this.companiesService.findOne(companySlug);
-    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
-    const user = await this.findOne(company.id, userId);
+    const user = await this.findOne(companySlug, userId, authenticatedUser);
 
     if(updateUserDto.password) {
       const saltRounds = Number(this.configService.get<string>('BCRYPT_SALT')?? 10);
@@ -64,20 +60,19 @@ export class UsersService {
   }
 
   async remove(companySlug: string, userId: string, authenticatedUser: User) {
-    const company = await this.companiesService.findOne(companySlug);
-    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
-    const userFound = await this.findOne(company.id, userId);
-    userFound.isActive = false;
-    await this.userRepository.save(userFound);
+    const user = await this.findOne(companySlug, userId, authenticatedUser);
+    user.isActive = false;
+    await this.userRepository.save(user);
   }
 
-  async findOne(companyId: string, userId: string) {
-    const company = { id: companyId };
-    const user = await this.userRepository.findOne({ where: { id: userId, company, isActive: true } });
+  async findOne(companyId: string, userId: string, authenticatedUser: User) {
+    const company = await this.companiesService.findOne(companyId);
+    const user = await this.userRepository.findOne({ where: { id: userId, company: { id: companyId }, isActive: true } });
     
     if(!user)
       throw new NotFoundException(`User with '${ userId }' not found`);
 
+    Permission.validate(company, authenticatedUser, userId, [ UserRole.SPECIALIST, UserRole.RECEPTIONIST, UserRole.ADMIN ]);
     return user;
   }
 }
